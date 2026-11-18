@@ -27,7 +27,7 @@ command** — not at the end of the session, which may never come. Each update:
 3. adds anything that bit to **§8**.
 
 Small fixes with no behaviour change (a typo, a comment) do not need an entry.
-Last updated: **17 Nov 2026** (0.4.29: harvest basket sheets — built, not deployed). Before that, 3 Nov 2026, 09:45 UTC (0.4.0: update bar, About with What's new, numbered releases — built, not deployed; before that: Pulse sign-ins reporter, tray deployed; blue live; SQLite + blue-green working). Commits from 10–24 Oct by other sessions are not summarised here; see `git log`.
+Last updated: **18 Nov 2026** (0.4.29: harvest basket sheets — deployed, blue live; fresh git history pushed to GitHub smartdeontech-eng/aotc-track). Before that, 3 Nov 2026, 09:45 UTC (0.4.0: update bar, About with What's new, numbered releases — built, not deployed; before that: Pulse sign-ins reporter, tray deployed; blue live; SQLite + blue-green working). Commits from 10–24 Oct by other sessions are not summarised here; see `git log`.
 
 ---
 
@@ -779,10 +779,14 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.29 harvest basket sheets — built, not deployed (17 Nov 2026)
+### 0.4.29 harvest basket sheets — deployed 18 Nov 2026 (blue live)
 
-Live was 0.4.27 on 17 Nov, so this release carries 0.4.28 too. Release with `push.sh`. Check on the
-live site: Fundraising → ⌨ Enter harvest sheets → choose the event and date → Print sheets opens the
+Released 18 Nov 09:50 (carries 0.4.28). Checked from the browser pane: /api/healthz 0.4.29 on blue,
+page-fundraising-sheets.js served, the Enter harvest sheets button in the page, /api/fundraising/sheets and
+/basket-sheets.pdf answer 401 (mounted, want a login). push.sh markers 'group chart' and 'merge into mine'
+printed 0 — this release touched neither (fundraising files, an appended style.css block, server.js body
+limit); check against an earlier deploy log whether they were 0 before. Still to do on the live site,
+signed in: Fundraising → ⌨ Enter harvest sheets → choose the event and date → Print sheets opens the
 PDF; type one sheet (wrong total refused, right total saves, tile turns green); Day summary opens.
 Before the harvest: print the set, clip each sheet to its basket, and run one practice sheet with the
 desk team.
