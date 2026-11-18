@@ -1,0 +1,46 @@
+# AOTC Track — systemd unit
+#
+# Where this goes: /etc/systemd/system/aotc-track.service
+#
+# Setup:
+#   sudo cp deploy/aotc-track.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now aotc-track
+#   sudo systemctl status aotc-track
+#   journalctl -u aotc-track -f      # tail logs
+#
+# Assumes the app lives at /opt/aotc-track, owned by a dedicated,
+# unprivileged "aotc" user (not root, not your personal login) — see
+# deploy/DEPLOYMENT.md for how to create that user and copy the app there.
+
+[Unit]
+Description=AOTC Track — PCG AOTC planning, attendance & reporting
+After=network.target
+
+[Service]
+Type=simple
+User=aotc
+Group=aotc
+WorkingDirectory=/opt/aotc-track
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=3
+Environment=NODE_ENV=production
+# The congregation keeps Ghana time (UTC+0 year-round, no DST). Without this the
+# service inherits the host's timezone, and a host on a negative UTC offset
+# reports the wrong "today" for reminder windows and default dates. If you ever
+# move the VPS, this line is what keeps the app on Accra time.
+Environment=TZ=Africa/Accra
+
+# ---- Sandboxing (systemd's own privilege reduction, on top of running as
+# a non-root user) ----
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# The app only ever needs to write inside these — everything else under
+# ProtectSystem=strict is read-only to the process even if it's compromised.
+ReadWritePaths=/opt/aotc-track/data /opt/aotc-track/backups /opt/aotc-track/public/uploads /opt/aotc-track/public/img /opt/aotc-track/minutes /opt/aotc-track/generated /opt/aotc-track/marriage-files
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,38 @@
+node_modules/
+
+# Live congregation records. Never commit these — back them up instead.
+# Broader than the original `data/*.json`, which did not cover data/
+# subdirectories: data/member-photos holds photographs of named members.
+data/
+backups/
+
+# Member photographs and any other uploaded file.
+public/uploads/
+
+# Secrets. .env.example is the committed template.
+.env
+
+# Generated deliverables — quarterly reports, district workbooks, agendas.
+# These are output, reproducible from the app, and some carry real names.
+generated/
+minutes/
+minutes-export/
+marriage-files/
+# ShareHub uploads (live records; the deploy already excludes them).
+document-files/
+
+# Scratch. _to_delete/ also holds aotc-src.tgz, a full source tarball.
+_to_delete/
+_preview/
+_pre-headings-backup/
+
+# Editor and OS leftovers. A stray users.json.save holds password hashes.
+.DS_Store
+*.save
+*.bak
+*.swp
+
+# Pre-change copies kept beside the file they replace.
+*.before-pulse
+# Notes written by Claude sessions; kept on OneDrive, not in history.
+Claude outputs/

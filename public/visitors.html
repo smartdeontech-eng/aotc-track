@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Visitors & New Members — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Visitors &amp; New Members</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <button class="btn btn-primary" id="addBtn">+ Register person</button>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:20px;">
+        <div class="stat-card"><div class="label">Visitors (this quarter)</div><div class="value" id="statVisitors">—</div></div>
+        <div class="stat-card"><div class="label">New Members (this quarter)</div><div class="value" id="statNew">—</div></div>
+        <div class="stat-card"><div class="label">Integrated</div><div class="value" id="statIntegrated">—</div></div>
+        <div class="stat-card"><div class="label">Needing Follow-up</div><div class="value" id="statStalled">—</div></div>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>First seen</th><th>Status</th><th>Progress</th><th>Last follow-up</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register modal -->
+  <div class="modal-overlay" id="regOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Register person</h2>
+      <form id="regForm">
+        <div class="field"><label>Full name</label><input type="text" id="vName" required></div>
+        <div class="field-row">
+          <div class="field"><label>Phone</label><input type="tel" id="vPhone" placeholder="024xxxxxxx"></div>
+          <div class="field"><label>Email (optional)</label><input type="email" id="vEmail"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>They are a…</label>
+            <select id="vType"><option value="visitor">Visitor</option><option value="new-member">New member (joining us)</option></select>
+          </div>
+          <div class="field"><label>First seen</label><input type="date" id="vDate"></div>
+        </div>
+        <div class="field"><label>How did they hear of us? (optional)</label><input type="text" id="vSource"></div>
+        <div class="field"><label>Notes (optional)</label><input type="text" id="vNotes"></div>
+        <p class="sub">A welcome SMS goes out automatically if a phone number is given.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="regCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Person modal -->
+  <div class="modal-overlay" id="pOverlay" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+      <h2 id="pTitle">Person</h2>
+      <div id="pBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="pCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-visitors.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

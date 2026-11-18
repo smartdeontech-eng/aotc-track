@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Access Requests — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  .assign-row{border:1px solid var(--line,#d5dae6);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+  .assign-row .assign-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .assign-row .assign-head .sub{font-size:11px;text-transform:uppercase;letter-spacing:.03em;opacity:.55;font-weight:700;}
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Access Requests</h1>
+          <div class="sub" id="subLabel">Propose new platform users for administrator approval</div>
+        </div>
+        <button class="btn btn-primary" id="requestBtn" style="display:none;">+ Request access</button>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Person</th><th>Type</th><th>Committees / Groups</th><th>Contact</th><th>Status</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request modal -->
+  <div class="modal-overlay" id="requestOverlay" style="display:none;">
+    <div class="modal" style="max-width:660px;">
+      <h2>Request platform access</h2>
+      <form id="requestForm">
+        <div class="field">
+          <label>Request type</label>
+          <select id="rKind">
+            <option value="new-user">New person — create an account</option>
+            <option value="add-workspace">Existing person — add committee/group</option>
+          </select>
+        </div>
+
+        <!-- New person -->
+        <div id="newPersonFields">
+          <div class="field-row">
+            <div class="field"><label>Full name</label><input type="text" id="rName"></div>
+            <div class="field"><label>Email</label><input type="email" id="rEmail"></div>
+          </div>
+          <div class="field"><label>Phone</label><input type="text" id="rPhone" placeholder="e.g. 024 123 4567"></div>
+        </div>
+
+        <!-- Existing person -->
+        <div id="existingPersonField" style="display:none;">
+          <div class="field"><label>Person</label><select id="rPerson"></select><div class="sub" id="rPersonHint" style="margin-top:4px;"></div></div>
+        </div>
+
+        <div class="section-title" style="margin-top:10px;"><h3>Committees / Groups</h3></div>
+        <div id="assignRows"></div>
+        <button type="button" class="btn btn-secondary btn-sm" id="addAssignBtn">+ Add committee/group</button>
+
+        <div class="field" style="margin-top:12px;"><label>Notes for the approver (optional)</label><input type="text" id="rNotes" placeholder="Anything the approver should know"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="requestCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit for approval</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Approve modal -->
+  <div class="modal-overlay" id="approveOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="approveTitle">Approve access</h2>
+      <div id="approveDetails" class="sub" style="margin-bottom:10px;"></div>
+      <div class="field" id="approvePwWrap">
+        <label>Initial password</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="initPassword" autocomplete="off" style="flex:1;" placeholder="Set a temporary password">
+          <button type="button" class="btn btn-secondary" id="genPwBtn">Generate</button>
+        </div>
+        <div id="initPwMeter" style="margin-top:6px;"></div>
+        <p class="sub" style="margin-top:6px;">Temporary — the person must set their own password at first login. It's sent to them by SMS and email.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="approveCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="approveConfirmBtn">Approve</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-access.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Goals & KPIs — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Goals &amp; KPIs</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <select id="ownerFilter" style="min-width:220px;"></select>
+          <button class="btn btn-primary" id="addBtn" style="display:none;">+ Add goal</button>
+        </div>
+      </div>
+
+      <div class="card" id="pendingCard" style="padding:0; display:none; margin-bottom:16px; border:1px solid #E0A800;">
+        <div style="padding:12px 16px; display:flex; align-items:center; gap:10px;">
+          <span class="badge badge-progress">Pending approval</span>
+          <span class="sub" id="pendingCount"></span>
+        </div>
+        <table>
+          <thead><tr><th>Code</th><th>Goal</th><th>Owner</th><th>Source</th><th>Proposed by</th><th></th></tr></thead>
+          <tbody id="pendingRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Code</th><th>Goal</th><th>Owner</th><th>Source</th><th>KPIs</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI detail modal -->
+  <div class="modal-overlay" id="kpiOverlay" style="display:none;">
+    <div class="modal" style="max-width:640px;">
+      <h2 id="kpiTitle">Goal</h2>
+      <p class="sub" id="kpiDesc"></p>
+      <p class="sub" id="kpiHint" style="display:none; margin:-4px 0 10px;">Set this year's target for each KPI. Targets drive the progress tracking on the dashboard and quarterly reports.</p>
+      <table>
+        <thead><tr><th>Key Performance Indicator</th><th>Unit</th><th>Prev. actual</th><th>Target</th><th id="kpiActionsHead" style="display:none;"></th></tr></thead>
+        <tbody id="kpiRows"></tbody>
+      </table>
+      <button type="button" class="btn btn-secondary btn-sm" id="kpiAddBtn" style="display:none; margin-top:10px;">+ Add KPI</button>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="kpiCloseBtn">Close</button>
+        <button type="button" class="btn btn-primary" id="kpiSaveBtn" style="display:none;">Save KPIs &amp; targets</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared-goal roll-up: what the groups working on this goal have done.
+       Read-only by design — whoever entered a figure owns it. -->
+  <div class="modal-overlay" id="shOverlay" style="display:none;">
+    <div class="modal" style="max-width:760px;">
+      <h2 id="shTitle">Shared goal</h2>
+      <p class="sub" id="shDesc"></p>
+      <div id="shBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="shCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add goal modal -->
+  <div class="modal-overlay" id="goalOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Add goal</h2>
+      <form id="goalForm">
+        <div class="field-row">
+          <div class="field"><label>Code</label><input type="text" id="gCode" required placeholder="e.g. T-CLN-01"></div>
+          <div class="field"><label>Owner</label><select id="gOwner" required></select></div>
+        </div>
+        <div class="field"><label>Goal description</label><input type="text" id="gDesc" required></div>
+        <div class="field">
+          <label>Source</label>
+          <select id="gSource">
+            <option value="committee_tor">Committee TOR</option>
+            <option value="local_strategic">Local Strategic Objective</option>
+            <option value="merged">Merged (TYRP + Strategic)</option>
+            <option value="tyrp">TYRP</option>
+          </select>
+        </div>
+        <div class="field"><label>First KPI (description | unit | target)</label><input type="text" id="gKpi" placeholder="e.g. Number of activities | No. | 4"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="goalCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-goals.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

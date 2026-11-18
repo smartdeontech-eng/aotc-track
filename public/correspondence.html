@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Correspondence Inbox — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  .fbar{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;}
+  .fbar button{border:1px solid var(--line,#d5dae6);background:transparent;color:inherit;font:inherit;font-size:12.5px;
+               font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;opacity:.75;}
+  .fbar button.on{background:#1D3F94;border-color:#1D3F94;color:#fff;opacity:1;}
+  .fbar .n{font-weight:700;margin-left:4px;opacity:.8;}
+  .letter{border:1px solid var(--line,#d5dae6);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+  .lhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;}
+  .lhead b{font-size:15px;flex:1;min-width:200px;}
+  .meta{font-size:11.5px;opacity:.7;margin-top:3px;}
+  .st{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:2px 7px;white-space:nowrap;}
+  .st.new{background:rgba(200,140,20,.16);color:#8a6100;}
+  .st.session{background:rgba(29,63,148,.13);color:#1D3F94;}
+  .st.handled{background:rgba(128,140,170,.16);color:#59617a;}
+  .st.tabled{background:rgba(20,140,90,.14);color:#136b47;}
+  .soon{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 7px;background:rgba(200,40,40,.13);color:#b02a2a;margin-left:6px;}
+  .page-strip{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;margin-top:6px;}
+  .pg{position:relative;margin:0;width:90px;}
+  .pg a{display:block;border:1px solid var(--line,#d5dae6);border-radius:8px;overflow:hidden;}
+  .pg img{width:90px;height:112px;object-fit:cover;display:block;}
+  .pg-pdf{width:90px;height:112px;display:flex;align-items:center;justify-content:center;font:600 12px ui-monospace,monospace;color:#8a8f9c;}
+  .pg figcaption{font-size:11px;opacity:.6;text-align:center;margin-top:3px;}
+  .pg-x{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line,#d5dae6);background:var(--card,#fff);cursor:pointer;font-size:11px;line-height:1;}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+  .sortbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line,#d5dae6);}
+  .ro p{margin:6px 0 0;font-size:13.5px;}
+  /* The page tray (Oct 2026): take or pick the pages of one letter, check them, then upload. */
+  .tray-ov{position:fixed;inset:0;background:rgba(10,16,32,.55);z-index:95;display:none;align-items:flex-end;justify-content:center;}
+  .tray{background:var(--panel,#fff);color:var(--ink,#0B1220);width:100%;max-width:680px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25);}
+  @media (min-width:720px){.tray-ov{align-items:center;}.tray{border-radius:16px;}}
+  .tray h3{margin:0 0 4px;font-size:17px;}
+  .tray-btns{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+  .tray-btns .btn{flex:1 1 150px;justify-content:center;font-size:15px;padding:12px;}
+  .tray-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:12px;margin:8px 0 4px;min-height:20px;}
+  .tp{margin:0;text-align:center;}
+  .tp img,.tp .pg-pdf{width:100%;height:132px;object-fit:cover;border:1px solid var(--rule,#d5dae6);border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(127,127,127,.06);}
+  .tp figcaption{font-size:11px;opacity:.65;margin-top:3px;}
+  .tp-acts{display:flex;justify-content:center;gap:4px;margin-top:4px;}
+  .tp-acts button{width:32px;height:30px;border:1px solid var(--rule,#d5dae6);border-radius:7px;background:transparent;color:inherit;cursor:pointer;font-size:12px;}
+  .tp-acts button:disabled{opacity:.3;cursor:default;}
+  .tray-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--rule,#d5dae6);}
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Correspondence Inbox</h1>
+          <div class="sub">Letters received for the Session, scanned in as they arrive</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button class="btn btn-secondary" id="cxBtn" title="Export the letters in this view as PDF or Word, to share">Export</button>
+          <button class="btn btn-primary" id="scanBtn">+ Scan a letter</button>
+        </div>
+      </div>
+      <p class="sub" id="lead" style="margin:-4px 0 14px;"></p>
+      <div class="fbar" id="filters"></div>
+      <div id="list"></div>
+      <p class="sub" id="emptyNote" style="display:none;"></p>
+    </div>
+  </div>
+  <datalist id="actionList"></datalist>
+  <div class="tray-ov" id="trayOverlay" role="dialog" aria-modal="true" aria-labelledby="trayTitle">
+    <div class="tray">
+      <h3 id="trayTitle">Scan a letter</h3>
+      <p class="sub" style="margin:0;font-size:12.5px;">All the pages of ONE letter. Nothing is uploaded until you press Upload.</p>
+      <div class="tray-btns">
+        <button type="button" class="btn btn-primary" id="trayCam">📷 Take a photo</button>
+        <button type="button" class="btn btn-secondary" id="trayPick">Choose files</button>
+      </div>
+      <input type="file" id="trayCamIn" accept="image/*" capture="environment" style="display:none;">
+      <input type="file" id="trayPickIn" accept="image/*,application/pdf" multiple style="display:none;">
+      <div class="sub" id="trayCount" style="font-size:12.5px;"></div>
+      <div class="tray-pages" id="trayPages"></div>
+      <div class="sub" id="trayNote" style="font-size:12px;"></div>
+      <div class="tray-foot">
+        <button type="button" class="btn btn-secondary" id="trayCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="trayGo" disabled>Upload</button>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-correspondence.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

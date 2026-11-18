@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Messages — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Messages</h1>
+          <div class="sub">Chat with other AOTC Track users</div>
+          <div class="sub" style="margin-top:3px; font-size:12px; color:var(--muted);">🔒 Messages are stored on the church server; administrators can access them if needed. Please keep highly sensitive or confidential matters off chat.</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" id="newGroupBtn" type="button">New group</button>
+          <button class="btn btn-primary" id="newDmBtn" type="button">New message</button>
+        </div>
+      </div>
+
+      <div class="chat card" id="chat" style="padding:0;">
+        <div class="chat-list" id="convList" data-skel="list"></div>
+        <div class="chat-thread" id="chatThread">
+          <div class="chat-empty" id="chatEmpty">Select a conversation, or start a new one.</div>
+          <div class="chat-head" id="chatHead" style="display:none;">
+            <button class="chat-back" id="chatBack" type="button" aria-label="Back to conversations">‹</button>
+            <div class="chat-title" id="chatTitle"></div>
+          </div>
+          <div class="chat-msgs" id="chatMsgs" style="display:none;"></div>
+          <form class="chat-composer" id="chatComposer" style="display:none;">
+            <input type="text" id="msgInput" placeholder="Type a message…" autocomplete="off">
+            <button class="btn btn-primary" type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New DM -->
+  <div class="modal-overlay" id="dmOverlay" style="display:none;">
+    <div class="modal">
+      <h2>New message</h2>
+      <div class="field"><label>To</label><select id="dmUser"></select></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="dmCancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="dmStart" type="button">Start chat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New group -->
+  <div class="modal-overlay" id="groupOverlay" style="display:none;">
+    <div class="modal">
+      <h2>New group</h2>
+      <div class="field"><label>Group name</label><input type="text" id="grpTitle" placeholder="e.g. Executives" maxlength="60"></div>
+      <div class="field"><label>People</label><div class="perm-checklist" id="grpPeople"></div></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="grpCancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="grpCreate" type="button">Create group</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-messages.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>About — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>About</h1>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:480px;">
+        <img src="/img/logo.png" alt="AOTC Track" style="height:36px; margin-bottom:18px;">
+        <h3 style="margin-bottom:4px;">AOTC Track — Planning, reporting and records</h3>
+        <p class="sub" style="margin:0 0 18px;">Version <span class="appVersion">—</span> — DeonTech Platform</p>
+
+        <table style="width:100%;">
+          <tbody>
+            <tr><td class="sub" style="width:140px; padding-left:0;">Developed by</td><td>DeonTech Systems</td></tr>
+            <tr><td class="sub" style="padding-left:0;">Version</td><td class="mono"><span class="appVersion">—</span> — DeonTech Platform</td></tr>
+            <tr><td class="sub" style="padding-left:0;">Support</td><td id="supportEmail">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="max-width:480px; margin-top:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+          <h3 style="margin:0;">This copy</h3>
+          <button class="btn" id="checkUpdates" type="button">Check for updates</button>
+        </div>
+        <table style="width:100%;">
+          <tbody>
+            <tr><td class="sub" style="width:140px; padding-left:0;">Running</td><td class="mono" id="runningVersion">—</td></tr>
+            <tr><td class="sub" style="padding-left:0;">On the server</td><td class="mono" id="serverVersion">—</td></tr>
+            <tr><td class="sub" style="padding-left:0;">Released</td><td id="releasedOn">—</td></tr>
+            <tr><td class="sub" style="padding-left:0;">Server running since</td><td id="startedAt">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="max-width:480px; margin-top:16px;">
+        <h3 style="margin:0 0 10px;">What’s new</h3>
+        <div id="changes" class="sub">—</div>
+      </div>
+
+      <p class="sub" style="margin-top:20px; max-width:480px;">© <span id="year"></span> DeonTech Systems. All rights reserved.</p>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/page-about.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

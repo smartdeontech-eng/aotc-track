@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Reopen Requests &mdash; AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  .reason-quote{border-left:3px solid var(--line,#d5dae6);padding-left:10px;margin:4px 0 0;font-style:italic;opacity:.85;}
+  .kind-tag{font-size:11px;text-transform:uppercase;letter-spacing:.03em;opacity:.55;font-weight:700;}
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Reopen Requests</h1>
+          <div class="sub" id="subLabel">Anything locked can be asked for &mdash; and the asking is on the record</div>
+        </div>
+      </div>
+
+      <div class="card" id="scopeCard" style="display:none;">
+        <div class="sub" id="scopeText"></div>
+      </div>
+
+      <div class="filter-chips" id="tabs">
+        <button type="button" class="chip active" data-tab="pending">Waiting</button>
+        <button type="button" class="chip" data-tab="decided">Decided</button>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>What</th><th>Asked by</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approve modal: only the timed kind (a quarterly entry) needs a window. -->
+  <div class="modal-overlay" id="approveOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Reopen this entry</h2>
+      <div id="approveDetails" class="sub" style="margin-bottom:10px;"></div>
+      <div class="field" id="windowWrap" style="display:none;">
+        <label>How long should it stay open?</label>
+        <select id="windowSel">
+          <option value="hours">48 hours from now</option>
+          <option value="deadline">Until the quarter's reporting deadline</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="approveCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="approveConfirmBtn">Reopen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-unlocks.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || '/opt/npm-tools/node_modules/playwright');
+const fs = require('fs');
+let n = 0, fail = 0; const ok = (c, m) => { n++; console.log((c ? '  PASS ' : '  FAIL ') + m); if (!c) fail++; };
+(async () => {
+  const browser = await chromium.launch();
+  const W = process.env.W ? +process.env.W : 1280;
+  const ctx = await browser.newContext({ viewport: { width: W, height: 900 } });
+  const token = fs.readFileSync('cookie.txt', 'utf8').trim().replace(/^token=/, '');
+  await ctx.addCookies([{ name: 'token', value: token, domain: '127.0.0.1', path: '/' }]);
+  const page = await ctx.newPage();
+  const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto('http://127.0.0.1:4555/minutes.html');
+  await page.waitForFunction(() => typeof openDoc === 'function' && document.querySelector('#listView'));
+  await page.waitForTimeout(500);
+  await page.evaluate(() => openDoc(1));
+  await page.waitForTimeout(500);
+  await page.click('.mtab[data-pane="docs"]');
+  await page.setInputFiles('#prFile', 'proofread.docx');
+  await page.waitForSelector('#prBody .pr-group');
+  const tag = W < 600 ? 'phone-' : '';
+  const shot = async name => { await page.locator('#prCard').screenshot({ path: `shots/${tag}${name}.png` }); };
+  const txt = () => page.locator('#prBody').innerText();
+  let t = await txt();
+  const groups = await page.locator('#prBody .pr-group').allInnerTexts();
+  ok(groups.length === 2 && /Distant members/.test(groups[0]) && /Legal/.test(groups[1]), 'grouped by item, in document order: ' + groups.join(' | '));
+  ok(/0 of 3 done/.test(t), 'progress reads 0 of 3 done');
+  ok((await page.locator('#prBody mark').innerText()) === 'with Head Office', 'the commented words are highlighted in the paragraph');
+  ok(/Draft the change/.test(t) && !/Done — I changed it myself/.test(t), '"Draft the change" offered; no "done by hand" where the paragraph matches');
+  await shot('1-uploaded');
+
+  const first = () => page.locator('#prBody .pr-ch').first();
+  await first().getByRole('button', { name: 'Preview' }).click();
+  t = await txt();
+  ok(/How it will read:/.test(t) && /available and explained that distant members had been allocated to Presbyters\./.test(t), 'Preview shows the clean corrected text');
+  await first().getByRole('button', { name: 'Show the marks' }).click();
+  ok(await first().locator('del').count() > 0, '"Show the marks" brings the marks back');
+
+  await first().getByRole('button', { name: 'Accept', exact: true }).click();
+  await page.waitForFunction(() => /1 of 3 done/.test(document.getElementById('prBody').innerText));
+  t = await txt();
+  ok(/Now in the minutes:/.test(t) && /✓ accepted/.test(t), 'accepted change shows "Now in the minutes" with clean text');
+  ok((await first().locator('details summary').innerText()) === 'What changed', 'the marks fold under "What changed"');
+  const bar = await page.locator('.pr-bar span').evaluate(e => e.style.width);
+  ok(bar === '33%', 'progress bar at 33% (' + bar + ')');
+  await shot('2-accepted');
+  await page.locator('#prBody input[type=checkbox]').check();
+  ok(await page.locator('#prBody .pr-ch').count() === 2, 'Show only what’s left hides the decided one');
+  await page.locator('#prBody input[type=checkbox]').uncheck();
+  ok(await page.locator('#prBody .pr-ch').count() === 3, '…and unticking brings it back');
+
+  await first().locator('.pr-go').click();
+  await page.waitForTimeout(1500);
+  console.log('  probe:', JSON.stringify(await page.evaluate(() => { const e = document.querySelector('.pr-flash'); const r = e && e.getBoundingClientRect(); return { top: r && r.top, h: innerHeight, sy: scrollY, docH: document.documentElement.scrollHeight }; })));
+  ok(await page.locator('.mtab[data-pane="body"]').evaluate(e => e.classList.contains('active')), 'Go to item opens the Minutes tab');
+  const fl = page.locator('.pr-flash');
+  const flashed = await fl.count();
+  const flashHtml = flashed ? await fl.first().evaluate(e => e.innerText + ' ' + [...e.querySelectorAll('textarea,input')].map(x => x.value).join(' ')) : '';
+  ok(flashed === 1 && /allocated to Presbyters/.test(flashHtml), 'it flashes the right item, which already shows the accepted text');
+  const vis = flashed ? await fl.first().evaluate(e => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }) : false;
+  ok(vis, 'the item is scrolled into view');
+  ok(await page.locator('#prBackPill').isVisible(), 'a "Back to proofreading" button appears');
+  await page.screenshot({ path: `shots/${tag}3-goto.png` });
+  await page.click('#prBackPill');
+  await page.waitForTimeout(400);
+  ok(await page.locator('.mtab[data-pane="docs"]').evaluate(e => e.classList.contains('active')), 'pressing it returns to the Documents tab');
+  const back1 = await page.locator('[data-pr="ch:1"]').evaluate(e => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0 && e.classList.contains('pr-flash'); });
+  ok(back1, '…at the very card you came from, flashed');
+  ok(!(await page.locator('#prBackPill').isVisible()), '…and the button goes away');
+  // the browser/phone Back button does the same
+  await page.locator('[data-pr="cm:1"] .pr-go').click();
+  await page.waitForTimeout(800);
+  await page.goBack();
+  await page.waitForTimeout(500);
+  ok(await page.locator('.mtab[data-pane="docs"]').evaluate(e => e.classList.contains('active')) && page.url().includes('minutes.html'), 'the phone/browser Back button also returns to the proofreading (and stays in the app)');
+  ok(await page.locator('[data-pr="cm:1"]').evaluate(e => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), '…at the comment you came from');
+
+  await first().getByRole('button', { name: '↶ Undo' }).click();
+  await page.waitForFunction(() => /0 of 3 done/.test(document.getElementById('prBody').innerText));
+  const back = await page.evaluate(() => doc.sections.find(s => s.key === 'other').children[0].body.split('\n')[0]);
+  ok(/available, and explained.*divided amongst/.test(back), 'Undo puts the exported text back in the minutes');
+
+  await page.fill('#prDir-1', 'Use his wording.');
+  await page.getByRole('button', { name: 'Draft the change' }).click();
+  await page.waitForSelector('#prProp-1');
+  ok(/Draft it again/.test(await txt()), 'after drafting, the button reads "Draft it again"');
+  await shot('4-drafted');
+  await page.getByRole('button', { name: 'Apply to the minutes' }).click();
+  await page.waitForFunction(() => /✓ applied/.test(document.getElementById('prBody').innerText));
+  ok(await page.evaluate(() => doc.sections.find(s => s.key === 'other').children[1].body) === 'The legal team was to be shared with the legal teams of the Presbytery and Head Office.', 'Apply writes the draft into the minutes');
+  await page.locator('#prBody .pr-cm').getByRole('button', { name: '↶ Undo' }).click();
+  await page.waitForFunction(() => /Draft it again/.test(document.getElementById('prBody').innerText));
+  // The minutes are re-read after the list redraws: wait for that, not just the list.
+  await page.waitForFunction(() => doc.sections.find(s => s.key === 'other').children[1].body === 'The legal team was to be shared with Head Office.', null, { timeout: 5000 }).catch(() => {});
+  ok(await page.evaluate(() => doc.sections.find(s => s.key === 'other').children[1].body) === 'The legal team was to be shared with Head Office.', 'Undo on the comment restores the paragraph and keeps the draft');
+
+  await page.getByRole('button', { name: /Accept his 2 corrections/ }).click();
+  await page.waitForFunction(() => /2 of 3 done/.test(document.getElementById('prBody').innerText));
+  ok(true, 'Accept all that still match → 2 of 3 done');
+  await shot('5-final');
+  const st = await page.locator('.pr-go').first().evaluate(e => { const c = getComputedStyle(e); return { bg: c.backgroundColor, color: c.color, border: c.borderTopStyle + ' ' + c.borderTopColor, deco: c.textDecorationLine, w: e.offsetWidth }; });
+  console.log('  .pr-go style:', JSON.stringify(st));
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  ok(!overflow, 'no sideways scroll at ' + W + 'px');
+  ok(errors.length === 0, 'no page errors' + (errors.length ? ': ' + errors.join('; ') : ''));
+  console.log(`\n${n - fail}/${n} checks — ${fail ? 'FAILURES ABOVE' : 'all green'}`);
+  await browser.close(); process.exit(fail ? 1 : 0);
+})().catch(e => { console.error(e); process.exit(2); });

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Check-in — AOTC Track</title>
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Check-in</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" id="kioskBtn" type="button">🖥️ Kiosk mode</button>
+          <button class="btn btn-secondary" id="cardsBtn" style="display:none;">🪪 Print member cards</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="section-title"><h3>Context</h3></div>
+        <div class="field-row">
+          <div class="field" style="max-width:180px;" id="dateField"><label>Date</label><input type="date" id="cDate"></div>
+          <div class="field" style="max-width:200px;" id="svcField"><label>Service</label>
+            <select id="cService"><option value="joint">Joint service</option><option value="1st">1st service</option><option value="2nd">2nd service</option></select>
+          </div>
+          <div class="field" style="max-width:240px; display:none;" id="grpField"><label>Group</label><select id="cGroup"></select></div>
+          <div class="field" style="max-width:280px; display:none;" id="meetingField"><label>Meeting</label><select id="cMeeting"></select></div>
+          <button class="btn btn-secondary" id="newMeetingBtn" type="button" style="display:none; margin-top:18px;">+ New meeting</button>
+          <button class="btn btn-secondary" id="editMeetingBtn" type="button" style="display:none; margin-top:18px;">✎ Edit meeting</button>
+        </div>
+      </div>
+
+      <div class="dash-two-col" style="align-items:start;">
+        <div class="card">
+          <div class="section-title"><h3>Scan</h3></div>
+          <video id="scanVideo" playsinline style="width:100%; max-width:380px; border-radius:10px; background:#000; display:none;"></video>
+          <p class="sub" id="scanStatus">Camera not started.</p>
+          <div class="quick-actions" style="margin-top:8px;">
+            <button class="btn btn-primary" id="startScanBtn">📷 Start camera</button>
+            <button class="btn btn-secondary" id="stopScanBtn" style="display:none;">Stop</button>
+          </div>
+          <div class="section-title" style="margin-top:16px;"><h3>Manual (no card)</h3></div>
+          <input type="text" id="manualSearch" placeholder="Type a member's name…">
+          <div id="manualResults" style="margin-top:8px;"></div>
+          <div class="field-row" style="margin-top:12px; align-items:flex-end;">
+            <div class="field" style="max-width:170px; margin-bottom:0;">
+              <label>…or member number</label>
+              <input inputmode="numeric" id="numInput" placeholder="e.g. 1042" autocomplete="off">
+            </div>
+            <button class="btn btn-secondary" id="numBtn" type="button">Check in</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title"><h3>Checked in</h3><span class="badge badge-done" id="tally">0</span></div>
+          <div class="sub" id="mfTally" style="display:none; margin:-4px 0 8px;"></div>
+          <div style="max-height:50vh; overflow-y:auto;">
+            <table><tbody id="checkinRows"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New group meeting modal -->
+  <div class="modal-overlay" id="meetingOverlay" style="display:none;">
+    <div class="modal">
+      <h2>New meeting</h2>
+      <form id="meetingForm">
+        <div class="field-row">
+          <div class="field"><label>Date</label><input type="date" id="mmDate" required></div>
+          <div class="field" style="max-width:160px;"><label>Time (optional)</label><input type="time" id="mmTime"></div>
+        </div>
+        <div class="field"><label>Label</label><input type="text" id="mmLabel" placeholder="e.g. Men's Fellowship — Monday evening"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="mmCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create meeting</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm identity before checking in by number -->
+  <div class="modal-overlay" id="confirmOverlay" style="display:none;">
+    <div class="modal" style="max-width:340px; text-align:center;">
+      <h2 style="margin-bottom:14px;">Confirm check-in</h2>
+      <img id="ccPhoto" alt="Member photo" style="display:none; width:140px; height:140px; border-radius:14px; object-fit:cover; margin:0 auto 12px; border:1px solid var(--rule);">
+      <div id="ccNoPhoto" class="sub" style="display:none; margin:0 auto 12px; width:140px; height:140px; border-radius:14px; border:1px dashed var(--rule); display:flex; align-items:center; justify-content:center;">No photo on file</div>
+      <div id="ccName" style="font-family:'Geist',sans-serif; font-weight:800; font-size:20px;"></div>
+      <div id="ccPos" class="sub" style="margin-top:2px;"></div>
+      <div class="modal-actions" style="justify-content:center; margin-top:20px;">
+        <button type="button" class="btn btn-secondary" id="ccCancel">Not them</button>
+        <button type="button" class="btn btn-primary" id="ccConfirm">Check in</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-screen self check-in kiosk -->
+  <div id="kioskOverlay" class="kiosk" style="display:none;">
+    <button type="button" id="kioskExit" class="kiosk-exit">✕ Exit kiosk</button>
+    <div class="kiosk-ctx" id="kioskCtx"></div>
+
+    <div id="kioskEntry" class="kiosk-screen">
+      <div class="kiosk-title">Enter your member number</div>
+      <div class="kiosk-num" id="kioskNum">&nbsp;</div>
+      <div class="kiosk-pad" id="kioskPad"></div>
+      <button type="button" class="btn btn-primary kiosk-go" id="kioskGo">Check me in</button>
+      <button type="button" class="btn btn-secondary" id="kioskScanBtn">📷 Scan my card instead</button>
+      <div id="kioskScanArea" style="display:none; margin-top:12px;">
+        <video id="kioskVideo" playsinline class="kiosk-video"></video>
+        <p class="sub" id="kioskScanStatus"></p>
+      </div>
+    </div>
+
+    <div id="kioskConfirm" class="kiosk-screen" style="display:none;">
+      <img id="kioskPhoto" class="kiosk-photo" alt="Your photo" style="display:none;">
+      <div id="kioskNoPhoto" class="kiosk-photo kiosk-photo-empty" style="display:none;">No photo</div>
+      <div class="kiosk-name" id="kioskName"></div>
+      <div class="kiosk-pos sub" id="kioskPos"></div>
+      <div class="kiosk-confirm-actions">
+        <button type="button" class="btn btn-secondary" id="kioskNo">Not me</button>
+        <button type="button" class="btn btn-primary" id="kioskYes">Yes, check me in</button>
+      </div>
+    </div>
+
+    <div id="kioskDone" class="kiosk-screen" style="display:none;">
+      <div class="kiosk-tick">✓</div>
+      <div class="kiosk-done-msg" id="kioskDoneMsg"></div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/vendor/jsQR.js"></script>
+  <script src="/js/page-checkin.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

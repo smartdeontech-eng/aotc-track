@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Weekly Finance — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Weekly Finance</h1>
+          <div class="sub" id="weekLabel">Funds received and paid out, Sunday by Sunday.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="date" id="weekDate" style="min-width:170px;">
+          <button class="btn btn-secondary" id="linesBtn" style="display:none;">Edit lines</button>
+        </div>
+      </div>
+
+      <div id="weekBody" data-skel="cards"></div>
+
+      <div id="totalsCard"></div>
+
+      <div class="card" style="margin-top:18px;">
+        <div class="section-title"><h3>This year's Sundays</h3></div>
+        <div id="weekList" data-skel="lines"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-finance-weekly.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

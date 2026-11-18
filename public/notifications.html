@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Notifications — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Notifications</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <button class="btn btn-secondary" id="markAllBtn" style="display:none;">Mark all read</button>
+        <button class="btn btn-primary" id="enablePushBtn" style="display:none;">🔔 Enable push on this device</button>
+      </div>
+      <!-- Admin tier only (shown by JS): broadcast to every account -->
+      <div class="card" id="bcCard" style="max-width:640px; margin-bottom:20px; display:none;">
+        <div class="section-title"><h3>Send announcement to everyone</h3></div>
+        <p class="sub" style="margin:0 0 12px;">Goes to every user account: it lands in each person's inbox below, pushes instantly to enrolled devices, plus SMS and/or email if ticked. Use sparingly — this reaches all committees and groups at once.</p>
+        <div class="field"><label>Title</label><input type="text" id="bcTitle" placeholder="e.g. Harvest launch this Sunday" maxlength="80"></div>
+        <div class="field"><label>Message</label><textarea id="bcMessage" rows="3" maxlength="300" placeholder="Keep it short — it appears as a phone notification."></textarea></div>
+        <label style="display:flex; align-items:center; gap:8px; font-weight:400; margin-bottom:6px;">
+          <input type="checkbox" id="bcSms" style="width:auto;"> Also send SMS to every account's phone <span class="sub">(uses mNotify credits)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-weight:400; margin-bottom:12px;">
+          <input type="checkbox" id="bcEmail" style="width:auto;"> Also send email to every account
+        </label>
+        <button class="btn btn-primary" id="bcSendBtn" type="button">Send announcement</button>
+        <p class="sub" id="bcResult" style="margin:10px 0 0;"></p>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <div id="notifList"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-notifications.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

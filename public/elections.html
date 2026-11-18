@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Elections — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+<style>
+  .el-list { display: grid; gap: 12px; }
+  .el-row { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; cursor: pointer; }
+  .el-row:hover { background: var(--hover-surface); }
+  .el-steps { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .el-step { font-size: 12px; padding: 4px 10px; border-radius: 100px; background: #EEF1F6; color: #7A8699; }
+  .el-step.done { background: #E3F2EC; color: var(--pcg-green); }
+  .el-step.now { background: var(--primary); color: #fff; }
+  .el-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .el-pos { border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; background: var(--panel); }
+  .el-pos-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .el-cands { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .el-cand { display: flex; align-items: center; gap: 10px; border: 1px solid var(--rule); border-radius: 10px; padding: 8px 10px; min-width: 200px; }
+  .el-ph { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #E9EEF7; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary); flex: 0 0 auto; }
+  .el-bar { height: 10px; border-radius: 6px; background: #E9EEF7; overflow: hidden; }
+  .el-bar > span { display: block; height: 100%; background: var(--primary); }
+  .el-res-row { display: grid; grid-template-columns: 44px 1fr 90px; gap: 10px; align-items: center; padding: 6px 0; }
+  .el-link { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .el-link code { background: #F3F6FC; border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; word-break: break-all; }
+  .el-review td.err { color: var(--red); }
+  .el-review tr.dup td, .el-review tr.error td { background: #FFF7F6; }
+  .el-pin { font-family: 'IBM Plex Mono', monospace; font-size: 34px; letter-spacing: 0.2em; font-weight: 700; text-align: center; padding: 16px; background: #F3F6FC; border-radius: 12px; margin: 10px 0; }
+  .el-sign-tier { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--primary); margin: 14px 0 4px; }
+  .el-note { border-left: 3px solid var(--amber); background: #FBF1DE; padding: 10px 14px; border-radius: 8px; margin: 10px 0; }
+  @media (max-width: 640px) { .el-res-row { grid-template-columns: 36px 1fr 70px; } }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 id="elH1">Elections</h1>
+          <div class="sub" id="elSub">Group elections run by CLAN and confirmed by the Session Clerk</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="elBack" style="display:none;">&larr; All elections</button>
+          <button class="btn btn-primary" id="elNew" style="display:none;">+ New election</button>
+        </div>
+      </div>
+
+      <!-- List of elections -->
+      <div id="elListPane"><div class="el-list" id="elList"><p class="sub">Loading…</p></div></div>
+
+      <!-- One election -->
+      <div id="elDetailPane" style="display:none;">
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+            <div>
+              <div id="elStatus"></div>
+              <div class="el-steps" id="elSteps"></div>
+              <div class="sub" id="elWindow" style="margin-top:6px;"></div>
+            </div>
+            <div class="el-actions" id="elActions"></div>
+          </div>
+          <div id="elNotice"></div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div class="basis-toggle" id="elTabs">
+            <button data-tab="overview" class="active">Overview</button><button data-tab="ballot">Ballot</button><button data-tab="voters">Voters</button><button data-tab="booths">Booths</button><button data-tab="settings">Settings</button>
+          </div>
+        </div>
+
+        <div data-pane="overview">
+          <div class="stat-grid" id="elStats" data-skel="tiles"></div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="section-title"><h3>Links</h3></div>
+            <div id="elLinks"></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;" id="elResultsCard">
+            <div class="section-title"><h3 id="elResultsTitle">Results</h3><span class="sub" id="elLiveTag"></span></div>
+            <div id="elResults"></div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>Officers&rsquo; log</h3></div>
+            <div id="elEvents" class="sub"></div>
+          </div>
+        </div>
+
+        <div data-pane="ballot" style="display:none;">
+          <div class="section-title"><h3>Positions and candidates</h3><button class="btn btn-secondary" id="elAddPos" style="display:none;">+ Add position</button></div>
+          <p class="sub" style="margin-top:-4px;">A position with no more candidates than seats is <b>unopposed</b>: voters answer Yes or No for each candidate.</p>
+          <div id="elBallot"></div>
+        </div>
+
+        <div data-pane="voters" style="display:none;">
+          <div class="card" style="margin-bottom:14px;">
+            <div class="section-title"><h3>Voters&rsquo; list</h3><span class="sub" id="elVoterCount"></span></div>
+            <div class="el-actions" id="elVoterTools"></div>
+            <input type="file" id="elFile" accept=".xlsx,.csv" style="display:none;">
+            <p class="sub" id="elVoterHelp" style="margin:10px 0 0;"></p>
+          </div>
+          <div class="card" style="padding:0;">
+            <div style="padding:12px 16px;"><input type="search" id="elVoterSearch" placeholder="Search name or number" style="max-width:320px;"></div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>Name</th><th>Phone</th><th>Date of birth</th><th>Member No.</th><th>Code</th><th>Voted</th><th></th></tr></thead><tbody id="elVoters"></tbody></table></div>
+          </div>
+        </div>
+
+        <div data-pane="booths" style="display:none;">
+          <div class="section-title"><h3>Polling booths</h3><button class="btn btn-secondary" id="elAddBooth" style="display:none;">+ Add booth</button></div>
+          <p class="sub" style="margin-top:-4px;">Open a booth&rsquo;s link on the laptop at the venue and enter its PIN once. Switch a booth off here and it stops accepting votes at once.</p>
+          <div class="card" style="padding:0;"><div style="overflow-x:auto;"><table><thead><tr><th>Booth</th><th>Votes</th><th>Status</th><th>Link for the laptop</th><th></th></tr></thead><tbody id="elBooths"></tbody></table></div></div>
+          <div class="card" style="margin-top:16px;">
+            <div class="section-title"><h3>Polling officers</h3></div>
+            <p class="sub" style="margin-top:-4px;">For voters who come without their phone. A polling officer opens the <b>Polling Desk</b> (in the menu once named), takes the voter&rsquo;s phone number, checks their date of birth or confirms they know them, and sends the ballot to a booth. No code is read out, the officer never sees the ballot, and the voter&rsquo;s phone gets an SMS once the vote is cast.</p>
+            <div id="elOfficers"></div>
+          </div>
+        </div>
+
+        <div data-pane="settings" style="display:none;">
+          <div class="card" style="max-width:760px;">
+            <form id="elSettings"></form>
+          </div>
+          <div class="card" style="max-width:760px; margin-top:16px;">
+            <div class="section-title"><h3>Report sign-off</h3></div>
+            <form id="elSignoff"></form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New election / settings form lives in a modal for "new" -->
+  <div class="modal-overlay" id="elNewOverlay" style="display:none;">
+    <div class="modal" style="max-width:640px;">
+      <h2>New election</h2>
+      <form id="elNewForm"></form>
+    </div>
+  </div>
+
+  <!-- Add position -->
+  <div class="modal-overlay" id="elPosOverlay" style="display:none;">
+    <div class="modal" style="max-width:440px;">
+      <h2 id="elPosTitle">Add position</h2>
+      <form id="elPosForm">
+        <div class="field"><label>Position</label><input type="text" id="elPosName" required placeholder="e.g. President"></div>
+        <div class="field"><label>Number of seats</label><input type="number" id="elPosSeats" min="1" max="20" value="1"><div class="sub" style="margin-top:4px;">More than 1 for e.g. committee members: voters may pick up to this many.</div></div>
+        <div class="modal-actions"><button type="button" class="btn btn-secondary" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add candidate -->
+  <div class="modal-overlay" id="elCandOverlay" style="display:none;">
+    <div class="modal" style="max-width:460px;">
+      <h2 id="elCandTitle">Add candidate</h2>
+      <form id="elCandForm">
+        <div class="field"><label>Full name</label><input type="text" id="elCandName" required></div>
+        <div class="field"><label>Picture (optional)</label>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <img id="elCandPreview" class="el-ph" alt="" style="width:64px; height:64px; display:none;">
+            <input type="file" id="elCandPhoto" accept="image/*">
+          </div>
+          <label style="display:none; align-items:center; gap:6px; margin-top:8px; font-weight:400;" id="elCandRemoveWrap"><input type="checkbox" id="elCandRemove" style="width:auto;"> Remove the current picture</label>
+        </div>
+        <div class="modal-actions"><button type="button" class="btn btn-secondary" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Review voters before saving -->
+  <div class="modal-overlay" id="elReviewOverlay" style="display:none;">
+    <div class="modal" style="max-width:860px;">
+      <h2>Check the list before saving</h2>
+      <p class="sub" id="elReviewSummary"></p>
+      <div style="max-height:52vh; overflow:auto; border:1px solid var(--rule); border-radius:10px;">
+        <table class="el-review"><thead><tr><th>Row</th><th>Name</th><th>Phone</th><th>Date of birth</th><th>Member No.</th><th>Check</th></tr></thead><tbody id="elReviewRows"></tbody></table>
+      </div>
+      <div class="modal-actions"><button type="button" class="btn btn-secondary" data-close>Cancel</button><button type="button" class="btn btn-primary" id="elReviewSave">Add voters</button></div>
+    </div>
+  </div>
+
+  <!-- Add one voter / edit a voter -->
+  <div class="modal-overlay" id="elVoterOverlay" style="display:none;">
+    <div class="modal" style="max-width:480px;">
+      <h2 id="elVoterTitle">Add a voter</h2>
+      <form id="elVoterForm">
+        <div class="field"><label>Full name</label><input type="text" id="elVName"></div>
+        <div class="field"><label>Phone</label><input type="tel" id="elVPhone" placeholder="0244123456" required></div>
+        <div class="field-row">
+          <div class="field"><label>Date of birth</label><input type="date" id="elVDob"></div>
+          <div class="field"><label>Member No.</label><input type="text" id="elVNo"></div>
+        </div>
+        <div class="field" id="elVReasonWrap" style="display:none;"><label>Reason for changing the number (goes in the report)</label><input type="text" id="elVReason" placeholder="e.g. old number lost"></div>
+        <div class="modal-actions"><button type="button" class="btn btn-secondary" data-close>Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Booth PIN (shown once) -->
+  <div class="modal-overlay" id="elPinOverlay" style="display:none;">
+    <div class="modal" style="max-width:440px;">
+      <h2 id="elPinTitle">Booth PIN</h2>
+      <p class="sub">Write this down for the booth officer. It is shown only now; you can issue a new one later.</p>
+      <div class="el-pin" id="elPin"></div>
+      <div class="el-link"><code id="elPinLink"></code></div>
+      <div class="modal-actions"><button type="button" class="btn btn-primary" data-close>Done</button></div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-elections.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

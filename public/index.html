@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Home — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<link rel="stylesheet" href="/css/home.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main"><div class="hm">
+
+      <!-- Greeting, today, search and New -->
+      <div class="hm-top rise" style="--i:0">
+        <div>
+          <h1 class="hm-greet" id="hmGreet">Welcome to AOTC Track</h1>
+          <div class="hm-date" id="hmDate"></div>
+        </div>
+        <div class="hm-tools">
+          <button type="button" class="hm-search" id="hmSearch">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <span>Find a page, member, goal…</span><kbd id="hmKbd">Ctrl K</kbd>
+          </button>
+          <button type="button" class="btn btn-primary hm-new" id="hmNewBtn" aria-haspopup="menu" aria-expanded="false" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span>
+          </button>
+          <div class="hm-menu" id="hmNewMenu" role="menu" hidden></div>
+        </div>
+      </div>
+
+      <!-- Verse of the day, and where we are in the quarter -->
+      <div class="hm-band rise" style="--i:1">
+        <blockquote class="hm-verse" id="hmVerse"></blockquote>
+        <div class="hm-q">
+          <div class="hm-ring" aria-hidden="true">
+            <svg width="74" height="74"><circle cx="37" cy="37" r="31" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="7"/>
+              <circle class="fg" id="hmRing" cx="37" cy="37" r="31" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="194.8" stroke-dashoffset="194.8"/></svg>
+            <b id="hmRingPct">0%</b>
+          </div>
+          <div class="hm-chips" id="hmChips"></div>
+        </div>
+      </div>
+
+      <!-- What is waiting on you · what is coming up -->
+      <div class="hm-grid">
+        <section class="hm-card rise" style="--i:2" aria-labelledby="hmNeedsH">
+          <header><h3 id="hmNeedsH">Needs you<span class="hm-count" id="hmNeedsN" hidden></span></h3><span class="sub">most urgent first</span></header>
+          <ul class="hm-todo" id="hmNeeds"><li class="hm-skel" aria-hidden="true"></li><li class="hm-skel" aria-hidden="true"></li><li class="hm-skel" aria-hidden="true"></li></ul>
+          <div id="hmNeedsFoot"></div>
+        </section>
+        <section class="hm-card hm-week rise" style="--i:3" aria-labelledby="hmWeekH">
+          <header><h3 id="hmWeekH">Coming up</h3><a class="lnk" href="/diary.html">Church Diary →</a></header>
+          <div class="hm-days" id="hmDays"></div>
+          <div id="hmEvents"><p class="sub" style="margin:6px 0;">Loading…</p></div>
+        </section>
+      </div>
+
+      <!-- The numbers that matter this quarter -->
+      <div class="hm-pulse" id="hmPulse"></div>
+
+      <!-- Charts, the report board, group attendance -->
+      <div id="hmAnalytics"></div>
+
+      <!-- Quick actions (only the pages this account can open) -->
+      <div class="hm-qa rise" style="--i:10" id="hmQuick"></div>
+      <div style="height:32px"></div>
+    </div></div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/page-dashboard.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

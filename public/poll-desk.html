@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Polling Desk — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+<style>
+  .pd-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .pd-grid { grid-template-columns: 1fr; } }
+  .pd-who { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #E9F7F0; border: 1px solid #BFE6D2; margin: 6px 0 14px; }
+  .pd-who b { font-size: 17px; }
+  .pd-method { display: grid; gap: 10px; margin: 8px 0 14px; }
+  .pd-method label.opt { display: flex; gap: 10px; align-items: flex-start; border: 1.5px solid var(--rule); border-radius: 12px; padding: 12px; cursor: pointer; font-weight: 400; }
+  .pd-method label.opt.on { border-color: var(--primary); background: #F3F6FC; }
+  .pd-method input[type=radio] { width: auto; margin-top: 3px; }
+  .pd-dob { display: grid; grid-template-columns: 1fr 1.6fr 1.2fr; gap: 8px; margin-top: 8px; }
+  .pd-booth { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .pd-booth:last-child { border-bottom: 0; }
+  .pd-big { font-size: 18px !important; padding: 12px 14px !important; }
+  .pd-done { border-left: 3px solid var(--pcg-green); background: #E9F7F0; padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Polling Desk</h1>
+          <div class="sub" id="pdSub">For voters who come to the booth without their phone</div>
+        </div>
+        <div><select id="pdElection" style="display:none; min-width:240px;"></select></div>
+      </div>
+      <div id="pdEmpty" class="card" style="display:none;"></div>
+      <div class="pd-grid" id="pdMain" style="display:none;">
+        <div>
+          <div id="pdDone"></div>
+          <div class="card">
+            <div class="section-title"><h3>Check the voter</h3></div>
+            <form id="pdFind">
+              <div class="field"><label>Their phone number (as on the voters&rsquo; list)</label>
+                <div style="display:flex; gap:8px;"><input type="tel" id="pdPhone" class="pd-big" inputmode="tel" placeholder="e.g. 0244123456" autocomplete="off"><button class="btn btn-primary" type="submit">Find</button></div>
+              </div>
+            </form>
+            <div id="pdVoter"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="section-title"><h3>Booths</h3></div>
+            <div id="pdBooths" class="sub">Loading…</div>
+          </div>
+          <div class="card">
+            <div class="section-title"><h3>Released from this desk</h3></div>
+            <div id="pdRecent" class="sub"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-poll-desk.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

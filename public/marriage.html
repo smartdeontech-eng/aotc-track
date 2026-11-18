@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Intended Marriages — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+
+      <!-- ===== List view ===== -->
+      <div id="listView">
+        <div class="page-header">
+          <div>
+            <h1>Intended Marriages</h1>
+            <div class="sub">CFL — interview → Session → signed copy on file → counselling (confidential)</div>
+          </div>
+          <button class="btn btn-secondary" id="registerBtn">📖 Marriage Register</button>
+          <button class="btn btn-primary" id="newCaseBtn">+ New case</button>
+        </div>
+        <div class="card" style="padding:0;">
+          <table>
+            <thead><tr><th>Ref</th><th>Couple</th><th>Interview</th><th>Recommendation</th><th>Stage</th><th></th></tr></thead>
+            <tbody id="caseRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== Form editor view ===== -->
+      <div id="editView" style="display:none;">
+        <div class="page-header">
+          <div>
+            <h1 id="edTitle">Interview form</h1>
+            <div class="sub" id="edSub">PCG-AOTC-CFL-FR01 — fill online, print for Session, sign, upload the signed copy</div>
+          </div>
+          <button class="btn btn-secondary" id="backBtn">← All cases</button>
+          <button class="btn btn-primary" id="saveBtn">Save</button>
+        </div>
+        <div id="edStageBar" style="margin-bottom:16px;"></div>
+        <div id="phase2"></div>
+        <div id="formSections"></div>
+        <div class="card" style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" id="saveBtn2">Save</button>
+          <button class="btn btn-secondary" id="pdfBtn">📄 Form PDF (print for Session)</button>
+          <button class="btn btn-secondary" id="sendBtn">Mark as sent to Session</button>
+          <button class="btn btn-primary" id="uploadBtn">📷 Upload signed copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New case modal -->
+  <div class="modal-overlay" id="nOverlay" style="display:none;">
+    <div class="modal" style="max-width:520px;">
+      <h2>New intended-marriage case</h2>
+      <form id="newForm">
+        <div class="field-row">
+          <div class="field"><label>Intended husband — full name</label><input type="text" id="nHName" required></div>
+          <div class="field" style="max-width:160px;"><label>Phone</label><input type="tel" id="nHPhone"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Intended wife — full name</label><input type="text" id="nWName" required></div>
+          <div class="field" style="max-width:160px;"><label>Phone</label><input type="tel" id="nWPhone"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="nCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Open case</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Signed-scan upload modal -->
+  <div class="modal-overlay" id="uOverlay" style="display:none;">
+    <div class="modal" style="max-width:560px;">
+      <h2>Upload the signed form</h2>
+      <p class="sub" style="margin-top:0;">Photograph each signed page with your phone (or attach one PDF). The photos are combined into a single PDF on the server, filed against this case, and the counselling phase unlocks.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+        <label class="btn btn-primary" style="cursor:pointer;">📷 Take / add page photos
+          <input type="file" id="scanCam" accept="image/*" capture="environment" multiple style="display:none;">
+        </label>
+        <label class="btn btn-secondary" style="cursor:pointer;">📎 Attach a PDF instead
+          <input type="file" id="scanPdf" accept="application/pdf" style="display:none;">
+        </label>
+      </div>
+      <div id="pageList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
+      <div class="sub" id="uStatus"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="uCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="uSendBtn" disabled>Upload &amp; file</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-marriage.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

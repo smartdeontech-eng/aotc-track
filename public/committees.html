@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Committees — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Committees</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" id="importContactsBtn" style="display:none;" title="Copy phone/email from login accounts onto matching roster members (fills gaps only)">Import contacts from logins</button>
+          <button class="btn btn-primary" id="addBtn" style="display:none;">+ Add committee</button>
+        </div>
+      </div>
+
+      <div class="card" id="requestsCard" style="display:none; margin-bottom:20px;">
+        <div class="section-title"><h3>Pending membership requests</h3></div>
+        <table>
+          <thead><tr><th>Type</th><th>For</th><th>Person</th><th>Contact</th><th>Requested by</th><th></th></tr></thead>
+          <tbody id="requestRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Committee</th><th>Code</th><th>Type</th><th>Head</th><th>Secretary</th><th>Members</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="archivedCard" style="display:none; margin-top:20px; padding:0;">
+        <div style="padding:14px 16px 4px;"><h3 style="margin:0;">Archived committees</h3>
+          <p class="sub" style="margin:4px 0 8px;">No longer in lists or reports. Restoring brings back the same committee with all its records.</p></div>
+        <table><thead><tr><th>Committee</th><th>Code</th><th></th></tr></thead><tbody id="archivedRows"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roster modal -->
+  <div class="modal-overlay" id="rosterOverlay" style="display:none;">
+    <div class="modal" style="max-width:640px;">
+      <h2 id="rosterTitle">Members</h2>
+      <p class="sub" id="rosterAttSummary" style="margin:-4px 0 10px;"></p>
+      <div style="max-height:50vh; overflow-y:auto;">
+        <table>
+          <thead><tr><th>No.</th><th>Name</th><th>Position</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+          <tbody id="rosterRows"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="rosterCardsBtn" style="display:none;">🪪 Print QR cards</button>
+        <button type="button" class="btn btn-secondary" id="proposeCooptBtn" style="display:none;">Request co-opted member</button>
+        <button type="button" class="btn btn-secondary" id="addMemberBtn" style="display:none;">+ Add member</button>
+        <button type="button" class="btn btn-secondary" id="rosterCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member add/edit + contact propose modal -->
+  <div class="modal-overlay" id="memberOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="memberTitle">Add member</h2>
+      <form id="memberForm">
+        <div class="field"><label>Name</label><input type="text" id="mName" required></div>
+        <div class="field-row">
+          <div class="field"><label>Phone</label><input type="tel" id="mPhone" placeholder="e.g. 0244000000"></div>
+          <div class="field"><label>Email (optional)</label><input type="email" id="mEmail"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Position</label><input type="text" id="mPosition" value="Member"></div>
+          <div class="field" id="mSexField"><label>Sex</label>
+            <select id="mSex"><option value="">— select —</option><option value="male">Male</option><option value="female">Female</option></select>
+          </div>
+        </div>
+        <div class="field" id="mPhotoField">
+          <label>Photo (optional)</label>
+          <input type="file" id="mPhotoInput" accept="image/*" style="display:none;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img id="mPhotoPreview" class="item-thumb" style="display:none; width:56px; height:56px; object-fit:cover;" alt="Member photo">
+            <button type="button" class="btn btn-secondary btn-sm" id="mPhotoBtn">Choose photo</button>
+            <button type="button" class="btn btn-danger btn-sm" id="mPhotoRemove" style="display:none;">Remove</button>
+          </div>
+          <p class="sub" style="margin:6px 0 0; font-size:11.5px;">Shown at check-in to confirm identity. Optional — please don't add photos of children.</p>
+        </div>
+        <p class="sub" id="memberNote" style="display:none;">This will be sent to the Session Clerk for approval.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="memberCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="memberSaveBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Committee add/edit modal -->
+  <div class="modal-overlay" id="comOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="comTitle">Add committee</h2>
+      <form id="comForm">
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" id="cName" required></div>
+          <div class="field"><label>Code</label><input type="text" id="cCode" required maxlength="6"></div>
+        </div>
+        <div class="field">
+          <label>Type</label>
+          <select id="cType"><option value="standard">Standard (Higher Courts)</option><option value="local">Local</option></select>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Head (Chairperson/Coordinator)</label><input type="text" id="cHead"></div>
+          <div class="field"><label>Secretary</label><input type="text" id="cSecretary"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="comCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-committees.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

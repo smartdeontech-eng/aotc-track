@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Church Diary &mdash; AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  /* Each kind has its own colour AND its own word, so nothing depends on colour alone. */
+  :root{--k-session:#1D3F94;--k-meeting:#55657F;--k-programme:#7B3FA0;--k-preaching:#00734A;--k-funeral:#3A3A3A;--k-wedding:#C2185B;--k-traditional:#A86A12;--k-thanksgiving:#0E7C86;--k-other:#8A8F9C;}
+  html[data-theme="dark"]{--k-session:#5EA3F5;--k-meeting:#9AA8C2;--k-programme:#C190E8;--k-preaching:#4FD18F;--k-funeral:#C9CED8;--k-wedding:#F27AAE;--k-traditional:#F2B15A;--k-thanksgiving:#4FC9D3;--k-other:#A9AEBA;}
+  .dy-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;}
+  .dy-bar h2{margin:0 6px;font-size:18px;min-width:150px;text-align:center;}
+  .dy-bar .sp{flex:1;}
+  .dy-views{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;}
+  .dy-views button{border:none;background:transparent;color:var(--ink);padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;}
+  .dy-views button.on{background:var(--primary);color:#fff;}
+  .dy-kinds{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;}
+  .dy-kind{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-size:12.5px;cursor:pointer;}
+  .dy-kind i{width:10px;height:10px;border-radius:3px;background:var(--k);display:inline-block;}
+  .dy-kind.off{opacity:.45;text-decoration:line-through;}
+  .dy-confirm{border:1px solid #c98a00;border-radius:12px;padding:12px 14px;margin:0 0 14px;background:rgba(201,138,0,.07);}
+  .dy-confirm h3{margin:0 0 4px;font-size:15px;}
+  .dy-sug{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;border-top:1px dashed var(--rule);padding:10px 0 2px;}
+  .dy-sug .w{flex:1 1 260px;min-width:0;}
+  .dy-sug .f{font-size:12px;color:var(--muted);margin-top:2px;}
+  .dy-sug .f a, .dy-item a, #itemBody a{color:var(--primary-light);}
+  .dy-sug .b{display:flex;gap:6px;flex-wrap:wrap;}
+  .dy-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--panel);}
+  .dy-grid .hd{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--rule);background:var(--hover-surface);}
+  .dy-day{min-height:104px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:4px 5px;cursor:pointer;overflow:hidden;}
+  .dy-day:nth-child(7n+7){border-right:none;}
+  .dy-day.out{opacity:.45;}
+  .dy-day.today .n{background:var(--primary);color:#fff;border-radius:999px;padding:0 6px;}
+  .dy-day.sel{outline:2px solid var(--primary-light);outline-offset:-2px;}
+  .dy-day .n{font-size:12px;font-weight:700;display:inline-block;margin-bottom:2px;}
+  .dy-chip{display:block;font-size:11.5px;line-height:1.3;padding:1px 5px;margin:1px 0;border-left:3px solid var(--k);border-radius:3px;background:color-mix(in srgb, var(--k) 12%, transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dy-more{font-size:11px;color:var(--muted);}
+  .dy-dots{display:none;gap:3px;flex-wrap:wrap;}
+  .dy-dots i{width:7px;height:7px;border-radius:50%;background:var(--k);}
+  .dy-list h4{margin:14px 0 6px;font-size:13.5px;}
+  .dy-item{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--rule);border-left:4px solid var(--k);border-radius:10px;padding:8px 10px;margin:0 0 8px;background:var(--panel);cursor:pointer;}
+  .dy-item time{flex:none;width:64px;font-size:12.5px;font-weight:700;}
+  .dy-item .t{font-weight:600;font-size:14px;}
+  .dy-item .m{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .dy-tag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--k);margin-right:6px;}
+  .dy-empty{color:var(--muted);font-size:13px;padding:6px 0;}
+  .pp-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .pp-table td,.pp-table th{border-bottom:1px solid var(--rule);padding:4px;vertical-align:top;text-align:left;}
+  .pp-table input{width:100%;min-width:90px;font-size:12.5px;padding:4px 6px;}
+  @media (max-width:760px){
+    .dy-day{min-height:52px;padding:3px;}
+    .dy-chip,.dy-more{display:none;}
+    .dy-dots{display:flex;}
+    .dy-bar h2{min-width:0;font-size:16px;}
+  }
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Church Diary</h1>
+          <div class="sub">Everything happening in the congregation, at a glance — meetings, funerals, weddings, programmes and the preaching plan</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="ppBtn" style="display:none;">Preaching plan</button>
+          <button class="btn btn-primary" id="addBtn" style="display:none;">+ Add to the diary</button>
+        </div>
+      </div>
+
+      <div id="confirmBox"></div>
+
+      <div class="dy-bar">
+        <button class="btn btn-secondary btn-sm" id="prevBtn" aria-label="Previous month">‹</button>
+        <h2 id="monthLabel"></h2>
+        <button class="btn btn-secondary btn-sm" id="nextBtn" aria-label="Next month">›</button>
+        <button class="btn btn-secondary btn-sm" id="todayBtn">Today</button>
+        <span class="sp"></span>
+        <div class="dy-views" role="group" aria-label="View"><button type="button" data-view="month">Month</button><button type="button" data-view="list">List</button></div>
+      </div>
+      <div class="dy-kinds" id="kinds"></div>
+      <div id="view"></div>
+      <div id="dayPanel" class="dy-list"></div>
+    </div>
+  </div>
+
+  <!-- An entry: details, or the form to add / change one -->
+  <div class="modal-overlay" id="itemOverlay" style="display:none;">
+    <div class="modal" style="max-width:560px;">
+      <h2 id="itemTitle">On the diary</h2>
+      <div id="itemBody"></div>
+      <div class="modal-actions" id="itemActions"></div>
+    </div>
+  </div>
+
+  <!-- The preaching plan -->
+  <div class="modal-overlay" id="ppOverlay" style="display:none;">
+    <div class="modal" style="max-width:980px;">
+      <h2>Preaching plan</h2>
+      <p class="sub" style="margin-top:-4px;">Upload the plan as you share it (Word or PDF). Every service is read off it for you to check and correct; only what you confirm goes on the diary. Uploading a corrected plan later updates the same Sundays.</p>
+      <div class="field-row">
+        <div class="field"><label>The plan (Word or PDF)</label><input type="file" id="ppFile" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></div>
+        <div class="field" style="max-width:140px;"><label>Year</label><input type="number" id="ppYear" min="2020" max="2100"></div>
+      </div>
+      <div id="ppStatus" class="sub"></div>
+      <div id="ppRows" style="max-height:52vh;overflow:auto;margin-top:8px;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="ppCancel">Close</button>
+        <button class="btn btn-secondary" id="ppRead">Read the plan</button>
+        <button class="btn btn-primary" id="ppSave" style="display:none;">Put on the diary</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/visitors-text.js"></script>
+  <script src="/js/page-diary.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Session Minutes — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  /* Proofreading */
+  .pr-ch{border:1px solid var(--rule,#E3E9F4);border-radius:8px;padding:10px 12px;margin:0 0 10px;}
+  .pr-ch.done{opacity:.6;}
+  .pr-diff{font-size:13px;line-height:1.55;margin:6px 0;}
+  .pr-diff del{background:rgba(220,53,69,.14);color:#a3202f;text-decoration:line-through;}
+  .pr-diff ins{background:rgba(25,135,84,.16);color:#136b47;text-decoration:none;}
+  .pr-meta{font-size:11.5px;opacity:.75;}
+  .pr-cm{border-left:3px solid #c98a00;}
+  .pr-kind{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:4px;}
+  .pr-group{margin:16px 0 6px;font-size:13.5px;}
+  .pr-ctx{font-size:13px;line-height:1.55;margin:6px 0;padding:8px 10px;background:rgba(127,127,127,.07);border-radius:6px;}
+  .pr-ctx mark{background:rgba(201,138,0,.28);color:inherit;padding:0 1px;border-radius:2px;}
+  .pr-say{font-size:13px;margin:4px 0;}
+  .pr-clean{font-size:13px;line-height:1.55;margin:4px 0 6px;padding:8px 10px;border-left:3px solid #198754;background:rgba(25,135,84,.06);border-radius:4px;}
+  .pr-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;}
+  .pr-go{padding:2px 4px;font-size:12px;font-weight:600;background:none;border:none;box-shadow:none;color:var(--primary-light,#3B5BC4);cursor:pointer;}
+  .pr-go:hover{background:none;text-decoration:underline;}
+  .pr-progress{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;margin:4px 0 10px;}
+  .pr-bar{flex:0 0 140px;height:8px;border-radius:4px;background:rgba(127,127,127,.18);overflow:hidden;}
+  .pr-bar span{display:block;height:100%;background:#198754;}
+  .pr-ch.done{opacity:.75;}
+  .pr-back-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));z-index:900;
+    padding:10px 18px;border:none;border-radius:999px;background:#1D3F94;color:#fff;font:inherit;font-weight:700;font-size:14px;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);cursor:pointer;}
+  @media (max-width: 820px), (max-height: 520px) and (pointer: coarse) and (orientation: landscape){.pr-back-pill{bottom:calc(84px + env(safe-area-inset-bottom));}}
+  .pr-warn{font-size:12.5px;margin:6px 0;padding:6px 10px;border-left:3px solid #c98a00;background:rgba(201,138,0,.10);border-radius:4px;}
+  .pr-warn del{color:#a3202f;} .pr-warn ins{color:#136b47;text-decoration:none;}
+  .pr-why{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:12.5px;margin:8px 0 0;padding:6px 10px;border-left:3px solid #3B5BC4;background:rgba(59,91,196,.08);border-radius:4px;}
+  .pr-why span{flex:1 1 auto;}
+  .pr-why-edit{margin:8px 0 0;padding:8px 10px;border:1px dashed rgba(59,91,196,.45);border-radius:6px;}
+  .pr-why-edit textarea{width:100%;margin-top:4px;}
+  .pr-ch.done .pr-why,.pr-ch.done .pr-why-edit,.pr-ch.done .pr-why-btn{opacity:1;}
+  .pr-byrule{border-left:3px solid #3B5BC4;}
+  .pr-rule-note{color:#2F4BA8;opacity:1;margin:2px 0 4px;}
+  .pr-flash{outline:3px solid #c98a00;outline-offset:3px;transition:outline-color 1s;}
+  .mtabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line,#d5dae6);margin:0 0 18px;}
+  .mtab{padding:9px 14px;border:none;background:transparent;color:inherit;font:inherit;font-weight:600;font-size:13px;
+        border-bottom:2px solid transparent;cursor:pointer;opacity:.6;}
+  .mtab.active{opacity:1;border-bottom-color:#1D3F94;}
+  .pane{display:none;}
+  .pane.active{display:block;}
+
+  /* Roll ticking */
+  .roll-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px;}
+  .roll-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--line,#d5dae6);border-radius:9px;}
+  .roll-row .who{flex:1;min-width:0;}
+  .roll-row .who b{display:block;font-size:13px;font-weight:600;}
+  .roll-row .who span{font-size:11px;opacity:.6;}
+  .roll-seg{display:flex;gap:2px;background:rgba(128,140,170,.14);border-radius:8px;padding:2px;}
+  .roll-seg button{border:none;background:transparent;color:inherit;font:inherit;font-size:11px;font-weight:700;
+                   padding:4px 8px;border-radius:6px;cursor:pointer;opacity:.65;}
+  /* Green for present, amber for an apology, grey for absent — the roll
+     should be readable across the table at a glance. */
+  .roll-seg button.on{background:#157F4C;color:#fff;opacity:1;}
+  .roll-seg button.on.apo{background:#B7791F;}
+  .roll-seg button.on.abs{background:#8a8f9c;}
+  .roll-row.is-present{border-color:rgba(21,127,76,.45);}
+  .roll-row.is-apology{border-color:rgba(183,121,31,.45);}
+  .roll-counts{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:13px;}
+  .roll-counts b{font-size:17px;display:block;}
+
+  /* Section editor */
+  .sec{border:1px solid var(--line,#d5dae6);border-radius:11px;padding:12px 14px;margin-bottom:12px;}
+  .sec.off{opacity:.5;}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+  .sec-no{font-family:ui-monospace,monospace;font-weight:700;font-size:12.5px;background:rgba(29,63,148,.12);
+          color:#1D3F94;border-radius:6px;padding:2px 7px;}
+  .sec-title{flex:1;min-width:160px;font-weight:700;font-size:14px;}
+  .sec textarea{width:100%;min-height:76px;resize:vertical;font:inherit;font-size:13px;line-height:1.55;}
+  .child{border-left:3px solid rgba(29,63,148,.25);padding:8px 0 8px 12px;margin:10px 0 10px 6px;}
+  .child input[type=text]{font-weight:600;}
+  /* An item the agenda used to carry and no longer does. Never removed
+     automatically — a body may already be written against it. */
+  .child.dropped{border-left-color:#B7791F;background:rgba(183,121,31,.07);
+                 border-radius:0 8px 8px 0;padding-right:10px;}
+  .dropped-note{margin:0 0 6px;font-size:11.5px;font-weight:600;color:#8a6100;}
+  .row-2{display:grid;grid-template-columns:1fr 220px;gap:10px;}
+  @media(max-width:700px){.row-2{grid-template-columns:1fr;}}
+
+  /* Review of Minutes — one block per set reviewed */
+  .rev{border:1px solid var(--line,#d5dae6);border-radius:11px;padding:12px 14px;margin-bottom:12px;}
+  .rev-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .rev-head .n{font-family:ui-monospace,monospace;font-weight:700;font-size:12.5px;
+               background:rgba(29,63,148,.12);color:#1D3F94;border-radius:6px;padding:2px 7px;}
+  .rev-head b{flex:1;min-width:150px;font-size:13.5px;}
+  .fix{border-left:3px solid rgba(183,121,31,.4);padding:8px 0 8px 12px;margin:8px 0 8px 4px;}
+
+  /* Agenda */
+  .ag-row{display:grid;grid-template-columns:96px 70px 1fr 190px 34px;gap:8px;align-items:start;margin-bottom:7px;}
+  .ag-row .at{font-family:ui-monospace,monospace;font-size:12px;padding-top:9px;opacity:.75;}
+  .ag-sub{display:grid;grid-template-columns:1fr 190px 34px;gap:8px;margin:5px 0 5px 174px;}
+  .ag-row select,.ag-sub select,.ag-row .respOther,.ag-sub .respOther{width:100%;font-size:12.5px;}
+  @media(max-width:800px){.ag-row{grid-template-columns:1fr;}.ag-sub{margin-left:14px;grid-template-columns:1fr;}}
+
+  .corr-card{border:1px solid var(--line,#d5dae6);border-radius:11px;padding:12px 14px;margin-bottom:10px;}
+  .corr-card h4{margin:0 0 4px;font-size:14px;}
+  .corr-card > .sub{font-size:12.5px;}
+  .corr-card p:empty{display:none;}
+  .corr-need{border-color:#c98a00 !important;box-shadow:0 0 0 3px rgba(201,138,0,.15);}
+  .corr-need-tag{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:rgba(201,138,0,.16);color:#8a5d00;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+  .corr-quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .corr-need-note{flex-basis:100%;font-size:11.5px;margin:0;}
+  .corr-chip{padding:3px 10px;border-radius:999px;border:1px solid var(--line,#d5dae6);background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer;}
+  .corr-chip:hover{border-color:#3B5BC4;color:#2F4BA8;}
+  .corr-chip-sug{border-color:rgba(59,91,196,.5);background:rgba(59,91,196,.08);color:#2F4BA8;font-weight:600;}
+  .ai-badge{font-size:10px;text-transform:uppercase;letter-spacing:.04em;background:rgba(29,63,148,.12);
+            color:#1D3F94;border-radius:5px;padding:2px 6px;font-weight:700;}
+  .drop{border:2px dashed var(--line,#c3cad9);border-radius:12px;padding:22px;text-align:center;cursor:pointer;font-size:13px;}
+  .drop:hover{border-color:#1D3F94;}
+  .muted{opacity:.65;font-size:12.5px;}
+  /* Attached pages, shown as pictures — the clerk should be able to see he
+     attached the right sheet without opening it. */
+  .page-strip{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;margin-top:4px;}
+  .pg{position:relative;margin:0;width:104px;}
+  .pg a{display:block;border:1px solid var(--line,#d5dae6);border-radius:9px;overflow:hidden;
+        background:rgba(128,140,170,.08);line-height:0;}
+  .pg a:hover{border-color:#1D3F94;}
+  .pg a:focus-visible{outline:2px solid #1D3F94;outline-offset:2px;}
+  .pg img{width:104px;height:128px;object-fit:cover;display:block;}
+  .pg-pdf{width:104px;height:128px;display:flex;align-items:center;justify-content:center;}
+  .pg-pdf span{font:600 12px/1 ui-monospace,monospace;letter-spacing:.08em;color:#8a8f9c;
+               border:1px solid var(--line,#d5dae6);border-radius:5px;padding:5px 8px;background:var(--card,#fff);}
+  .pg figcaption{font-size:11px;opacity:.6;text-align:center;margin-top:4px;line-height:1.3;}
+  .pg-x{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;
+        border:1px solid var(--line,#d5dae6);background:var(--card,#fff);color:inherit;
+        cursor:pointer;font-size:11px;line-height:1;opacity:.75;}
+  .pg-x:hover{opacity:1;color:#fff;background:#b02a2a;border-color:#b02a2a;}
+    .tick{display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;}
+    .tick input{width:auto; margin:0;}
+    /* Colours from the theme, so night mode is dark here too (it was a light box). */
+    .preview-line{font-size:12.5px; line-height:1.5; color:var(--muted); background:var(--hover-surface);
+      border:1px solid var(--rule); border-radius:8px; padding:8px 10px;}
+    .prayer-card{border:1px solid var(--rule); border-radius:10px; padding:14px; margin:16px 0; background:var(--hover-surface);}
+    .pt-row{display:flex; gap:8px; align-items:center; margin-bottom:6px;}
+    .pt-row .pt-n{width:22px; text-align:right; color:#8a94a8; font-size:12.5px; flex:none;}
+    .pt-row input{flex:1;}
+    .pt-row .pt-x{flex:none; border:none; background:none; color:#b04a4a; cursor:pointer; font-size:16px; line-height:1; padding:2px 6px;}
+    /* Night mode: the fixed blues, greens and reds above are for a white page. */
+    html[data-theme="dark"] .sec-no, html[data-theme="dark"] .rev-head .n, html[data-theme="dark"] .ai-badge { color:#9CC3FF; background:rgba(94,163,245,.16); }
+    html[data-theme="dark"] .mtab.active { border-bottom-color:#5EA3F5; }
+    html[data-theme="dark"] .pr-diff del, html[data-theme="dark"] .pr-warn del { color:#FF9AA2; }
+    html[data-theme="dark"] .pr-diff ins, html[data-theme="dark"] .pr-warn ins { color:#7FE0AE; }
+    html[data-theme="dark"] .pr-rule-note, html[data-theme="dark"] .corr-chip-sug, html[data-theme="dark"] .corr-chip:hover { color:#9CC3FF; }
+    html[data-theme="dark"] .dropped-note, html[data-theme="dark"] .corr-need-tag { color:#F2C26B; }
+    html[data-theme="dark"] .pr-back-pill { background:#2F5FD0; }
+    /* One block per section (Nov 2026): a clear header band, the pick fields in
+       a shaded box, the typing below, and a bar to jump between sections. */
+    #secList .sec{border:1px solid var(--rule); border-radius:12px; padding:0 14px 14px; margin-bottom:18px; background:var(--panel); box-shadow:var(--shadow-sm);}
+    #secList .sec > .sec-head{margin:0 -14px 12px; padding:10px 14px; border-bottom:1px solid var(--rule); border-radius:12px 12px 0 0;
+      background:linear-gradient(0deg, rgba(29,63,148,.05), rgba(29,63,148,.09));}
+    #secList .sec.off > .sec-head{border-bottom:none; border-radius:12px; background:transparent;}
+    #secList .sec-title{font-weight:700; font-size:15px;}
+    .sec-pick{background:var(--hover-surface); border:1px solid var(--rule); border-radius:10px; padding:10px 12px 4px; margin:0 0 12px;}
+    .sec-pick .prayer-card{margin:4px 0 8px; background:transparent; border:none; padding:0;}
+    .sec-pick .card{background:transparent; box-shadow:none;}
+    .sec-pick .hint, #corrPrevNote{font-size:11.5px; color:var(--muted); margin:4px 0 0; line-height:1.4;}
+    .sec-cap{font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin:2px 0 6px;}
+    .sec-cap:empty{display:none;}
+    .sec-jump{position:sticky; top:0; z-index:40; display:flex; gap:6px; overflow-x:auto; padding:8px 2px; margin:0 0 10px;
+      background:var(--paper); border-bottom:1px solid var(--rule); scrollbar-width:thin;}
+    .sec-jump-btn{flex:none; border:1px solid var(--rule); background:var(--panel); color:var(--ink); border-radius:999px;
+      padding:5px 11px; font:inherit; font-size:12.5px; cursor:pointer; white-space:nowrap;}
+    .sec-jump-btn b{font-family:ui-monospace,monospace; font-size:11.5px; color:var(--primary-light); margin-right:3px;}
+    .sec-jump-btn:hover{border-color:var(--primary-light);}
+    #secList [data-mi$=":-1"]{scroll-margin-top:60px;}
+    html[data-theme="dark"] #secList .sec > .sec-head{background:linear-gradient(0deg, rgba(94,163,245,.06), rgba(94,163,245,.12));}
+    .pt-empty{font-size:12.5px; color:#8a94a8; padding:4px 0 8px;}
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Session Minutes</h1>
+          <div class="sub" id="headSub">Agenda, attendance, minutes and correspondence for Session meetings</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="backBtn" style="display:none;">‹ All minutes</button>
+          <button class="btn btn-primary" id="newBtn">+ New minutes</button>
+        </div>
+      </div>
+
+      <!-- ============ LIST ============ -->
+      <div id="listView">
+        <div class="card" style="padding:0;">
+          <table>
+            <thead><tr><th>Meeting date</th><th>Title</th><th>Venue</th><th>Present</th><th>Status</th><th></th></tr></thead>
+            <tbody id="docRows"></tbody>
+          </table>
+        </div>
+
+        <div class="section-title" style="margin-top:28px;"><h3>Search every minute</h3></div>
+        <p class="sub" style="margin:-6px 0 12px;">Looks through every numbered item ever recorded — “when did we last discuss the privacy screens?”</p>
+        <div class="card">
+          <input type="search" id="allSearch" placeholder="Search all minutes…" style="max-width:420px;">
+          <div id="allResults" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="section-title" style="margin-top:28px;">
+          <h3>Presbyters on Duty roster</h3>
+          <button class="btn btn-secondary btn-sm" id="podNewBtn">+ Upload a roster</button>
+        </div>
+        <p class="sub" style="margin:-6px 0 12px;">Two presbyters each Sunday, rostered half a year at a time. The pair on duty for the week of a Session meeting take the devotion.</p>
+        <div id="podList" data-skel="list"></div>
+
+        <div class="section-title" style="margin-top:28px;"><h3>Correspondence register</h3></div>
+        <p class="sub" style="margin:-6px 0 12px;">Every letter ever received by the Session, across all meetings.</p>
+        <div class="card">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input type="search" id="regSearch" placeholder="Search headings, senders, summaries…" style="max-width:420px; flex:1 1 220px;">
+            <button class="btn btn-secondary btn-sm" id="regExportBtn" title="Export the letters listed here as PDF or Word">Export</button>
+          </div>
+          <div id="regResults" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- ============ EDITOR ============ -->
+      <div id="editor" style="display:none;">
+        <div class="mtabs">
+          <button class="mtab active" data-pane="roll">Roll</button>
+          <button class="mtab" data-pane="agenda">Agenda</button>
+          <button class="mtab" data-pane="body">Minutes</button>
+          <button class="mtab" data-pane="corr">Correspondence</button>
+          <button class="mtab" data-pane="finance">Finance</button>
+          <button class="mtab" data-pane="docs">Documents</button>
+        </div>
+
+        <!-- ---- Roll ---- -->
+        <div class="pane active" id="pane-roll">
+          <div class="card">
+            <div class="roll-counts">
+              <div><b id="cPresent">0</b><span class="sub">Present</span></div>
+              <div><b id="cApology">0</b><span class="sub">Apologies</span></div>
+              <div><b id="cAbsent">0</b><span class="sub">Absent</span></div>
+              <div style="margin-left:auto; align-self:center;">
+                <button class="btn btn-secondary btn-sm" id="allPresentBtn">Mark all present</button>
+                <button class="btn btn-secondary btn-sm" id="pullBtn">Pull from a scheduled meeting</button>
+              </div>
+            </div>
+            <div class="roll-grid" id="rollGrid"></div>
+            <p class="sub" id="rollEmpty" style="display:none;">
+              The Session roster has not been set up yet. Use “Set up Session roster” below to create it in the
+              agreed order of seniority, then edit as needed.
+            </p>
+          </div>
+
+          <div class="section-title" style="margin-top:24px;">
+            <h3>In attendance (guests)</h3>
+            <button class="btn btn-secondary btn-sm" id="addGuestBtn">+ Add guest</button>
+          </div>
+          <div class="card" id="guestList"></div>
+
+          <div class="section-title" style="margin-top:24px;">
+            <h3>Session roster</h3>
+            <div>
+              <button class="btn btn-secondary btn-sm" id="seedBtn">Set up Session roster</button>
+              <button class="btn btn-secondary btn-sm" id="addMemberBtn">+ Add member</button>
+            </div>
+          </div>
+          <p class="sub" style="margin:-6px 0 12px;">
+            Listed in the order they appear in the minutes — District Minister, Associate Minister, Catechists,
+            Senior Presbyter, Session Clerk, Treasurer, then members. Present, Apologies and Absent all follow this order.
+          </p>
+          <div class="card" style="padding:0;">
+            <table>
+              <thead><tr><th>#</th><th>Name</th><th>Position</th><th></th></tr></thead>
+              <tbody id="rosterRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ---- Agenda ---- -->
+        <div class="pane" id="pane-agenda">
+          <div class="card">
+            <div class="field-row">
+              <div class="field"><label>Meeting starts at</label><input type="time" id="agStart"></div>
+              <div class="field"><label>Venue</label><select id="agVenue"></select>
+                <input type="text" id="agVenueOther" placeholder="Type the venue" style="margin-top:6px; display:none;"></div>
+            </div>
+            <p class="sub">Each row's clock time is worked out from the start time and the durations above it — change one duration and the rest re-time themselves.</p>
+            <div id="agRows" style="margin-top:12px;"></div>
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" id="agAddBtn">+ Add item</button>
+              <button class="btn btn-secondary btn-sm" id="agStdBtn">Standard running order</button>
+              <button class="btn btn-secondary btn-sm" id="agStdRepBtn">Standard + reports</button>
+              <button class="btn btn-secondary btn-sm" id="agSeedBtn">Sync with the minutes</button>
+              <button class="btn btn-secondary btn-sm" id="scheduleBtn">Put this on the Meetings page</button>
+            </div>
+            <div id="onDutyNote" class="sub" style="margin-top:12px;"></div>
+            <p class="sub" id="syncNote" style="margin-top:8px;"></p>
+          </div>
+        </div>
+
+        <!-- ---- Minutes body ---- -->
+        <div class="pane" id="pane-body">
+          <!-- The Minutes tab follows the order of the minutes (Nov 2026): one block per
+               section, the things you pick (who, what time) at the top of each block,
+               what you type below. The pick groups below are moved into their section
+               by renderSections(); they live here only until the first render. -->
+          <p class="sub" style="margin:0 0 6px;">Each section has its own block, in the order of the minutes: what you <b>pick</b> (who, what time) at the top, what you <b>type</b> below. Anything left blank shows as ______ in the document.</p>
+          <p class="sub" id="poolNote"></p>
+          <nav id="secJump" class="sec-jump" aria-label="Go to a section"></nav>
+          <div id="mParking" hidden>
+            <div id="grpOpening">
+            <div class="field-row">
+              <div class="field"><label>Meeting commenced at</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="pCommenced" placeholder="e.g. 6:53 pm" style="flex:1;">
+                  <button type="button" class="btn btn-secondary btn-sm nowBtn" data-now="pCommenced" title="Stamp the current time">Now</button>
+                </div>
+              </div>
+              <div class="field"><label>Devotion led by</label>
+                <input type="text" id="pDevotionBy" placeholder="e.g. Mr Alex Abankwa">
+                <div id="podChips" style="margin-top:6px;"></div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Hymn</label>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span>PH</span>
+                  <input type="text" id="pHymnNo" inputmode="numeric" placeholder="597" style="width:80px;">
+                  <span class="sub" style="font-size:12px;">stanzas in this hymn</span>
+                  <select id="pHymnTotal" style="width:auto;"></select>
+                </div>
+                <div id="pHymnChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+                <p class="sub" style="margin:6px 0 2px;font-size:11.5px;">Tick the stanzas that were sung. Give the number of stanzas in the hymn to have it written as “the last two” or “all four”.</p>
+                <input type="text" id="pHymn" placeholder="Prints as — e.g. the first two stanzas of PH 597">
+                <p class="sub" style="margin:4px 0 0;font-size:11.5px;">This is what prints. You can edit it for anything unusual, such as two hymns.</p>
+              </div>
+              <div class="field"><label>Scripture</label><input type="text" id="pScripture" placeholder="e.g. Genesis 45:4–6"></div>
+            </div>
+            </div>
+            <div id="grpVisitors">
+            <div class="field" id="visitorsField">
+              <label>Visitors to the Session <span class="sub">(printed under Presentation — not under In attendance)</span></label>
+              <div id="visitorsList"></div>
+              <button type="button" class="btn btn-secondary btn-sm" id="addVisitorsBtn" style="margin-top:4px;">+ Add visitors</button>
+            </div>
+            <div class="field-row" id="presLegacy" style="display:none;">
+              <div class="field"><label>Presentation by <span class="sub">(older minutes)</span></label>
+                <input type="text" id="pPresentationBy">
+              </div>
+              <div class="field"><label>Presentation topic <span class="sub">(older minutes)</span></label>
+                <input type="text" id="pPresentationTopic">
+                <p class="sub" style="margin:4px 0 0; font-size:11.5px;">Kept for minutes written before visitors were recorded group by group. Once any visitors are added above, these two are not printed.</p>
+                <button type="button" class="btn btn-primary btn-sm" id="presConvertBtn" style="margin-top:6px;">Change to visitors</button>
+              </div>
+            </div>
+            </div>
+            <div id="grpConstitution">
+            <div class="field-row">
+              <div class="field"><label>Session constituted by</label>
+                <select id="pConstitutedBy" data-pool="agents"></select>
+                <input type="text" id="pConstitutedBy__other" class="otherIn" style="display:none;" placeholder="Type the name">
+                <p class="sub" id="agentNote" style="margin:4px 0 0; font-size:11.5px;"></p>
+              </div>
+              <div class="field"><label>Constituted at</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="pConstitutedAt" placeholder="e.g. 7:04 pm" style="flex:1;">
+                  <button type="button" class="btn btn-secondary btn-sm nowBtn" data-now="pConstitutedAt" title="Stamp the current time">Now</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="tick"><input type="checkbox" id="pConstOnWord"> Constituted on the word shared (the devotion or a scripture)</label>
+                <input type="text" id="pConstWordRef" placeholder="Scripture, if one was named — e.g. Hebrews 4:16 (blank = the devotion)" style="margin-top:6px;">
+              </div>
+              <div class="field"><label>How this will read</label>
+                <div id="constPreview" class="preview-line">—</div>
+              </div>
+            </div>
+            </div>
+            <div id="grpPrayers">
+            <div class="prayer-card">
+              <div class="section-title" style="margin:0 0 10px;">
+                <h4 style="margin:0; font-size:14px;">Prayer points</h4>
+                <div style="display:flex; gap:6px;">
+                  <span id="prayerTidy" style="display:inline-flex;align-items:center;"></span>
+                  <button type="button" class="btn btn-secondary btn-sm" id="prayerPolishBtn" style="display:none;">✨ Tidy into minute style</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="addPrayerBtn">+ Add a prayer point</button>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Prayers led by</label>
+                  <select id="pPrayerLed" data-pool="present"></select>
+                  <input type="text" id="pPrayerLed__other" class="otherIn" style="display:none;" placeholder="Type the name">
+                </div>
+              </div>
+              <div id="prayerPoints"></div>
+              <div class="field" style="margin-top:10px;"><label>Anything else about the prayers</label>
+                <textarea id="pPrayerNote" rows="2" placeholder="e.g. A summary of the prayers was given by the District Minister, who then led the members of the Session to pray for one another."></textarea>
+                <div class="hint">The points print as bullets, exactly as the Session's minutes set them; this note prints as a paragraph underneath.</div>
+              </div>
+            </div>
+            </div>
+
+            <div id="grpClosure">
+            <div class="field-row">
+              <div class="field"><label>Closure moved by</label>
+                <select id="pCloseMoved" data-pool="present"></select>
+                <input type="text" id="pCloseMoved__other" class="otherIn" style="display:none;" placeholder="Type the name">
+              </div>
+              <div class="field"><label>Seconded by</label>
+                <select id="pCloseSeconded" data-pool="present"></select>
+                <input type="text" id="pCloseSeconded__other" class="otherIn" style="display:none;" placeholder="Type the name">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Meeting closed at</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="pClosedAt" placeholder="e.g. 7:47 pm" style="flex:1;">
+                  <button type="button" class="btn btn-secondary btn-sm nowBtn" data-now="pClosedAt" title="Stamp the current time">Now</button>
+                </div>
+              </div>
+              <div class="field"><label>Benediction pronounced by</label>
+                <select id="pBenediction" data-pool="agents"></select>
+                <input type="text" id="pBenediction__other" class="otherIn" style="display:none;" placeholder="Type the name">
+                <div class="hint">Only an agent may pronounce the benediction. Leave blank if none was given.</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="tick"><input type="checkbox" id="pGrace"> The Grace was said</label>
+                <div class="hint">The Grace is said by the meeting together, so it carries no name. Tick both if the Grace was said and the benediction pronounced; leave both alone if the meeting simply closed.</div>
+              </div>
+              <div class="field"><label>How this will read</label>
+                <div id="closurePreview" class="preview-line">—</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Minutes recorded by</label>
+                <select id="pRecordedBy" data-pool="present"></select>
+                <input type="text" id="pRecordedBy__other" class="otherIn" style="display:none;" placeholder="Type the name">
+                <div class="hint">Leave as the Session Clerk when he took the minutes. If someone else recorded them (the Assistant Session Clerk, for instance), choose that person: their name then signs at the bottom of the minutes as <b>Recorder</b>, in place of the Session Clerk.</div>
+              </div>
+            </div>
+            </div>
+
+          <div id="grpReview">
+          <div class="section-title" style="margin-top:0;">
+            <h3 style="font-size:14px;">Minutes reviewed</h3>
+            <button class="btn btn-secondary btn-sm" id="addReviewBtn">+ Add the minutes reviewed</button>
+          </div>
+          <p class="sub" style="margin:-6px 0 12px;" id="corrPrevNote"></p>
+          <div id="reviewList"></div>
+          </div>
+
+          <div id="grpCarry">
+          <div class="section-title" style="margin-top:0;">
+            <h3 style="font-size:14px;">Carried forward from the last meeting</h3>
+            <button class="btn btn-secondary btn-sm" id="carryBtn">Bring open items in</button>
+          </div>
+          <p class="sub" style="margin:-6px 0 12px;">Action points that are still open and anything deferred — they become Matters Arising sub-items and appear on the agenda.</p>
+          <div class="card" id="carryList"></div>
+          </div>
+          </div><!-- /mParking -->
+
+          <div class="section-title" style="margin-top:12px;"><h3>Sections</h3></div>
+          <p class="sub" style="margin:-6px 0 12px;">
+            Switch a section off if it did not happen — the numbering closes up automatically.
+            Correspondence is filled from the Correspondence tab.
+          </p>
+          <div id="secList"></div>
+        </div>
+
+        <!-- ---- Correspondence ---- -->
+        <!-- Each letter is a silo: it owns its own pages, and a draft is only
+             ever built from the pages inside that one letter. -->
+        <div class="pane" id="pane-corr">
+          <div class="section-title">
+            <h3>Correspondence received</h3>
+            <button class="btn btn-secondary btn-sm" id="styleBtn">How these are written</button>
+            <button class="btn btn-secondary btn-sm" id="corrExportBtn" title="Export the letters read at this meeting as PDF or Word">Export</button>
+            <button class="btn btn-primary btn-sm" id="corrAddBtn">+ Add a letter</button>
+          </div>
+          <p class="sub" style="margin:-6px 0 14px;" id="aiHint">
+            One entry per letter. Attach that letter's own pages to it, then draft from them —
+            pages belonging to different letters are never read together.
+          </p>
+          <div id="corrWaiting"></div>
+          <div id="corrList"></div>
+        </div>
+
+        <!-- ---- Church Finance ---- -->
+        <div class="pane" id="pane-finance">
+          <div class="card">
+            <h3 style="margin-top:0;">Treasurer's figures</h3>
+            <p class="sub">Enter the figures, or photograph the Treasurer's statement and check what is read off it. The TOTAL column, the sub-total row and every closing balance are worked out here — they are never taken from what was typed or read.</p>
+            <div class="field-row">
+              <div class="field"><label>Figures as at</label><input type="date" id="finAsOf"></div>
+              <div class="field"><label>&nbsp;</label>
+                <button class="btn btn-secondary btn-sm" id="finAccountsBtn" style="width:100%;">Edit accounts (columns)</button>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table id="finTable" style="min-width:560px;"></table>
+            </div>
+            <div id="finWarn" style="margin-top:10px;"></div>
+            <p class="sub" style="margin-top:12px;">Optional — totals printed on the statement itself, so the app can check its own arithmetic against them.</p>
+            <div class="field-row">
+              <div class="field"><label>Stated opening total</label><input type="text" id="finStOpening" data-num></div>
+              <div class="field"><label>Stated payments total</label><input type="text" id="finStPayments" data-num></div>
+              <div class="field"><label>Stated closing total</label><input type="text" id="finStClosing" data-num></div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="finSaveBtn">Save figures</button>
+          </div>
+
+          <div class="section-title" style="margin-top:24px;"><h3>Read from a photograph</h3></div>
+          <div class="card">
+            <div class="drop" id="finDrop"><div id="finDropText">📄 Tap to choose a photo or PDF of the statement</div></div>
+            <input type="file" id="finFile" accept="image/*,application/pdf" multiple style="display:none;">
+            <div style="margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" id="finReadBtn">Read the figures</button>
+              <span class="muted" id="finReadStatus"></span>
+            </div>
+            <div id="finReadResult" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- ---- Documents ---- -->
+        <div class="pane" id="pane-docs">
+          <div class="card">
+            <h3 style="margin-top:0;">Download</h3>
+            <p class="sub">The Word and PDF are generated from what you have entered and always match each other.</p>
+            <div id="tidyCheck"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <a class="btn btn-primary btn-sm" id="dlMinDocx" href="#">Minutes (Word)</a>
+              <a class="btn btn-secondary btn-sm" id="dlMinPdf" href="#" target="_blank">Minutes (PDF)</a>
+              <a class="btn btn-primary btn-sm" id="dlAgDocx" href="#">Agenda (Word)</a>
+              <a class="btn btn-secondary btn-sm" id="dlAgPdf" href="#" target="_blank">Agenda (PDF)</a>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openDocViewer(document.getElementById('dlAgPdf').href, 'Agenda', { image: true })" title="The agenda as a picture, to post in the WhatsApp group">Agenda (image for WhatsApp)</button>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:24px;"><h3>Proofreading</h3></div>
+          <p class="sub" style="margin:-6px 0 12px;">
+            Upload the Word minutes as the proofreader returned them, with his tracked changes and comments.
+            Each change is matched to its item for you to accept or reject, and each comment is put to you for a
+            directive. What you accept goes into the minutes here, so the next export carries it.
+          </p>
+          <div class="card" id="prCard">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <input type="file" id="prFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none;">
+              <button class="btn btn-primary btn-sm" id="prUploadBtn">Upload proofread Word file</button>
+              <span class="sub" id="prStatus"></span>
+            </div>
+            <div id="prBody" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="section-title" style="margin-top:24px;">
+            <h3>Appendices</h3>
+            <button class="btn btn-secondary btn-sm" id="addAppBtn">+ Add appendix</button>
+          </div>
+          <p class="sub" style="margin:-6px 0 12px;">Letters or papers read into the record — each is printed on its own page as Appendix A, B, C…</p>
+          <div id="appList"></div>
+
+          <div class="section-title" style="margin-top:24px;"><h3>Signed copies</h3></div>
+          <p class="sub" style="margin:-6px 0 12px;">
+            Two versions are kept: the <b>tabled draft</b> circulated before the review, and the <b>final adopted</b> copy after
+            corrections. Upload each once you have exported it from Word.
+          </p>
+          <div class="card">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <select id="verKind" style="max-width:220px;">
+                <option value="tabled">Tabled draft (before review)</option>
+                <option value="final">Final adopted copy</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" id="verUploadBtn">Upload PDF</button>
+              <input type="file" id="verFile" accept="application/pdf" style="display:none;">
+              <button class="btn btn-secondary btn-sm" id="circulateBtn">Circulate draft to members</button>
+              <span class="muted" id="verStatus"></span>
+            </div>
+            <div id="verList" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="section-title" style="margin-top:24px;"><h3>Status</h3></div>
+          <div class="card">
+            <p class="sub" id="statusText" style="margin-top:0;"></p>
+            <p class="sub" id="adoptNote" style="display:none;"></p>
+            <button class="btn btn-primary btn-sm" id="finaliseBtn">Mark as final</button>
+            <button class="btn btn-secondary btn-sm" id="reopenBtn" style="display:none;">Reopen for editing</button>
+            <button class="btn btn-secondary btn-sm" id="adoptBtn">Record adoption of the previous minutes</button>
+            <button class="btn btn-secondary btn-sm" id="confirmBtn" style="display:none;">Confirm as Minister</button>
+            <button class="btn btn-danger btn-sm" id="deleteBtn" style="float:right;">Delete these minutes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New minutes -->
+  <div class="modal-overlay" id="newOverlay" style="display:none;">
+    <div class="modal">
+      <h2>New Session minutes</h2>
+      <form id="newForm">
+        <div class="field-row">
+          <div class="field"><label>Meeting date</label><input type="date" id="nDate" required></div>
+          <div class="field"><label>Starts at</label><input type="time" id="nStart" value="18:30"></div>
+        </div>
+        <div class="field"><label>Title</label><input type="text" id="nTitle" value="Session Meeting"></div>
+        <div class="field"><label>Venue</label><select id="nVenue"></select>
+          <input type="text" id="nVenueOther" placeholder="Type the venue" style="margin-top:6px; display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="newCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Roster member -->
+  <div class="modal-overlay" id="memOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="memTitle">Add Session member</h2>
+      <form id="memForm">
+        <div class="field"><label>Name</label><input type="text" id="mName" required placeholder="e.g. Rev Joseph Richmond Tettey"></div>
+        <div class="field">
+          <label>Position</label>
+          <input type="text" id="mPosition" list="positionList" placeholder="Member">
+          <datalist id="positionList">
+            <option value="District Minister"></option><option value="Associate Minister"></option>
+            <option value="Catechist"></option><option value="Senior Presbyter"></option>
+            <option value="Session Clerk"></option><option value="Treasurer"></option><option value="Member"></option>
+          </datalist>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Email (for circulating drafts)</label><input type="email" id="mEmail" placeholder="optional"></div>
+          <div class="field"><label>Phone</label><input type="tel" id="mPhone" placeholder="optional"></div>
+        </div>
+        <div class="field">
+          <label>Order in the list</label>
+          <input type="number" id="mRank" min="1" step="1">
+          <p class="sub" style="margin:4px 0 0; font-size:11.5px;">Lower numbers appear first. Leave blank to add at the end.</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="memCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Guest -->
+  <div class="modal-overlay" id="guestOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="guestTitle">Add guest / in attendance</h2>
+      <form id="guestForm">
+        <div class="field"><label>Name</label><input type="text" id="gName" required></div>
+        <div class="field"><label>Short title <span class="sub">(printed beside the name, in capitals)</span></label><input type="text" id="gPosition" maxlength="32" placeholder="e.g. Seminarian"></div>
+        <div class="field"><label>Details <span class="sub">(optional — printed on a line under the name)</span></label><input type="text" id="gDetails" maxlength="300" placeholder="e.g. Third-year student, Trinity Theological Seminary; on attachment"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="guestCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="guestSave">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Visitors to the Session -->
+  <div class="modal-overlay" id="visOverlay" style="display:none;">
+    <div class="modal" style="max-width:640px;max-height:90vh;overflow:auto;">
+      <h2 id="visTitle">Add visitors</h2>
+      <div id="visForm"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="visCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="visSave">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pull attendance -->
+  <div class="modal-overlay" id="pullOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Pull attendance from a meeting</h2>
+      <p class="sub">Choose a meeting whose attendance has already been recorded and locked. People are matched to the Session roster by name.</p>
+      <div class="field"><label>Meeting</label><select id="pullSelect"></select></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="pullCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="pullGo">Pull attendance</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Presbyters on Duty roster -->
+  <div class="modal-overlay" id="podOverlay" style="display:none;">
+    <div class="modal" style="max-width:760px;">
+      <h2>Presbyters on Duty roster</h2>
+      <div class="field-row">
+        <div class="field"><label>Year</label><input type="number" id="podYear" min="2020" max="2100" step="1"></div>
+        <div class="field"><label>Half of the year</label>
+          <select id="podHalf">
+            <option value="1">January – June</option>
+            <option value="2">July – December</option>
+          </select>
+        </div>
+      </div>
+      <div class="drop" id="podDrop"><div id="podDropText">📄 Tap to choose a photo or PDF of the roster</div></div>
+      <input type="file" id="podFile" accept="image/*,application/pdf" multiple style="display:none;">
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary btn-sm" id="podReadBtn">Read the roster</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="podBlankBtn">Start a blank one</button>
+        <span class="muted" id="podStatus"></span>
+      </div>
+      <div id="podWarn" style="margin-top:10px;"></div>
+      <div id="podRows" style="margin-top:12px; max-height:46vh; overflow:auto;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="podCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="podSave">Save roster</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finance accounts -->
+  <div class="modal-overlay" id="acctOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Accounts shown in the finance table</h2>
+      <p class="sub">These become the columns. Removing an account removes its figures from this meeting's table.</p>
+      <div id="acctRows"></div>
+      <button class="btn btn-secondary btn-sm" id="acctAddBtn" style="margin-top:8px;">+ Add account</button>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="acctCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="acctSave">Save columns</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- House style for the correspondence drafting -->
+  <div class="modal-overlay" id="styleOverlay" style="display:none;">
+    <div class="modal" style="max-width:560px;">
+      <h2>How correspondence should be written</h2>
+      <p class="sub" style="margin-top:-6px;">
+        The app already follows the Session's house style, drawn from your own minutes. Anything you add
+        here is applied on top of it, in your words — use it to correct a habit rather than to restate
+        the whole style.
+      </p>
+      <div class="field">
+        <label>Your instructions</label>
+        <textarea id="styleNote" rows="7" placeholder="e.g. Name the sender as the congregation knows them — “the District”, not the full committee title.&#10;Never list a schedule date by date; give the span."></textarea>
+      </div>
+      <p class="sub" style="margin:0;">Applies to every letter drafted from now on. It does not change letters already summarised.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="styleCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="styleSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/agenda-editor.js"></script>
+  <script src="/js/session-venues.js"></script>
+  <script src="/js/visitors-text.js"></script>
+  <script src="/js/minutes-visitors.js"></script>
+  <script src="/js/page-minutes.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

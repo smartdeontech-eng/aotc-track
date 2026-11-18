@@ -1,0 +1,126 @@
+[
+  [
+    "0.4.29",
+    "Harvest sheets: AOTC Track prints one numbered sheet per basket for the fundraising day (event, date, service and basket already on it, PCG crest, the denominations, and lists for MoMo, cheques, transfers, foreign notes and pledges), plus a tick list of sheets. At the entry desk (Fundraising → ⌨ Enter harvest sheets) type the sheet number and the basket fills itself in; type the pieces and lists and the totals written on the sheet — a sheet that does not agree with what is written on it is not saved. Several people can enter sheets at once while counting goes on; a board shows every sheet of the day. A photo of a sheet can be sent from the counting table. When the last sheet is in: the day summary and the cash handover (cash by note and coin, every cheque) to sign, and Submit. The whole-day form can no longer overwrite figures saved at another desk."
+  ],
+  [
+    "0.4.28",
+    "About: What’s new shows the last three releases in full; everything older is folded under one “Earlier releases” line — click it to see the list, then click a release to read it."
+  ],
+  [
+    "0.4.27",
+    "Weekly Finance: Programmes during the week — a revival or a 2-, 3- or 5-day programme with an offering each day. Tick the days, type each day’s amount; picking a programme from the Church Diary ticks its days for you. It counts as Offertory in the quarterly figures and is read out with its days, e.g. “Revival offering (Mon 2 – Wed 4 November)”."
+  ],
+  [
+    "0.4.26",
+    "About: What’s new shows the release you are using in full; earlier releases are folded to their number and first line — click one to read it. A Refresh page button in the side menu and in the phone’s More sheet, for the app installed on the Mac’s Dock or a phone’s home screen, which has no browser bar and no pull-to-refresh (⌘R / Ctrl+R also works on a computer)."
+  ],
+  [
+    "0.4.25",
+    "New: the Church Diary (Meetings & Attendance → Church Diary) — everything happening in the congregation on one calendar, month or list, for everyone who signs in. Session meetings, committee and group meetings, and marriages approved by the Session go on by themselves. Church programmes, funerals and anything else can be added by the Session Clerk, the Church Administrator or anyone given the right. The preaching plan is uploaded as the Word or PDF it is shared as, read Sunday by Sunday, checked, then put on. Dates the app finds in letters (Correspondence Inbox and minutes) and in funerals or marriages announced to the Session are offered as “Put these on the diary?” for you to confirm or leave off. Home’s Coming up now includes the diary."
+  ],
+  [
+    "0.4.24",
+    "Constitution of the Session: a tick for when the Session was constituted on the word shared — the devotion or a scripture — as the minutes have recorded it. Ticked, the minutes read “Rev …, drawing on the words shared during the devotion, duly constituted the Session at … in the name of the Triune God.”; give a scripture and it reads “…, drawing on Hebrews 4:16, …”. A “How this will read” line shows the sentence as you go. Also fixed: changing a field and then moving on could, now and then, stop the Minutes tab redrawing properly."
+  ],
+  [
+    "0.4.23",
+    "Intended marriage: an optional thanksgiving service, with its date, time and venue, alongside the traditional marriage and the church wedding — in the visitors form under Presentation and on the Intended Marriages page. The minutes read “… the church wedding on …, and the thanksgiving service on Sunday 6 December 2026 at 9:00 am at the AOTC Chapel.” Each occasion's place is now labelled Venue."
+  ],
+  [
+    "0.4.22",
+    "Session minutes, Minutes tab: one block per section, in the order of the minutes — Opening, Constitution, Presentation, Review, Matters Arising and the rest down to Closure. Each block has what you pick (who, what time, the hymn) in a shaded box at the top and what you type below, and a bar of section buttons at the top jumps straight to any section. The separate “What was captured on the night” card is gone. In night mode the Prayers box and the closure preview are now dark like the rest of the page."
+  ],
+  [
+    "0.4.21",
+    "Visitors to the Session: a seminarian on attachment or a ministerial probationer can now be added under Presentation. For a seminarian, give the year, the seminary (Trinity Theological Seminary unless you say otherwise) and the dates with the congregation; the minutes read “Seminarian on Attachment — name” and “…, a third-year seminarian from Trinity Theological Seminary, was introduced to the Session by …”. A probationer reads “…, a ministerial probationer, …. He was present as an observer as part of his training.”"
+  ],
+  [
+    "0.4.20",
+    "Intended marriages: a couple presented to the Session now has both occasions — the traditional (customary) marriage and the church wedding — each with its date, time and place. Choosing the marriage case fills them in (and the names, which it was not doing). The minutes read “Intended Marriage — groom and bride”, and say the couple came to announce their intended marriage unless you type another reason. On the Intended Marriages page, the proposed dates now take a time and a place for each occasion too."
+  ],
+  [
+    "0.4.19",
+    "Proofreading: when a paragraph has been changed since the minutes went for review, Accept no longer refuses — it amends just the words the proofreader marked and leaves the rest of your wording alone. “Amend just the marked words” is offered wherever his corrections still fit, even after heavy editing; anything that no longer fits is listed to do by hand."
+  ],
+  [
+    "0.4.18",
+    "Times are put in the minutes’ style — “9:00 pm”. A time typed any way (“9:00 PM”, “9pm”, “9.00 p.m.”, “21:00”) is corrected when you leave the box, and any time written in the text of an item or a letter is corrected in the exported minutes. Bible references such as John 3:16 are left alone."
+  ],
+  [
+    "0.4.17",
+    "Exported minutes: “No presentation” left in the Presentation box is dropped once visitors are recorded, and a Review of Minutes lead-in that repeats “… led the Session to review the minutes …” gives way to “The following minutes was reviewed.”, so nothing prints twice."
+  ],
+  [
+    "0.4.16",
+    "Presentation in the exported minutes: “The following presentation was received.” (or “presentations were”, by the number), then each visit as its own numbered item — 3.1, 3.2 … — with its heading, e.g. “Funeral Announcement — Ophelia Ama Nyarkoaa Obeng”. The heading is suggested from the visit and can be typed over."
+  ],
+  [
+    "0.4.15",
+    "Visitors: one person who came alone is “she”/“he” (from the title) — “her mother”, “prayed for her before she took leave of the Session” — not “the family”. With no introduction, the minutes go straight in: “Madam … from Kokomlemle announced the passing of her mother …”."
+  ],
+  [
+    "0.4.14",
+    "Visitors: “withdrew” is replaced — the minutes now read “The family then took leave of the Session.”, or with a prayer “Presbyter … prayed for the family before they took leave of the Session.”"
+  ],
+  [
+    "0.4.13",
+    "Visitors form: “They were prayed for before they left”, with who said the prayer chosen from those present (or typed). Prints e.g. “Presbyter Kwaku Koranteng prayed for the family before they withdrew.”"
+  ],
+  [
+    "0.4.12",
+    "Visitors form: ✨ Tidy on “What they said” and on “The Session’s response” — rough notes are written up as minutes, carrying on from the sentences already written for the group, with “My notes before tidy-up” to put them back."
+  ],
+  [
+    "0.4.11",
+    "Visitors form: the “Spoke for them” tick is visible and can be unticked; the “withdrew” tick is explained and shows what it adds; a funeral reason that only repeats the announcement is no longer printed twice."
+  ],
+  [
+    "0.4.10",
+    "Correspondence: “Not approved” joins the actions — as a quick choice beside Approved, in the suggestions list, and in the Correspondence Inbox."
+  ],
+  [
+    "0.4.9",
+    "Visitors’ letters print under Correspondence again. The visit refers to the letter by its item number — “Details of the funeral arrangements are contained in their letter (see item 7.2 under Correspondence).” A letter received at an earlier meeting can be found and linked too: the visit names that meeting and its item, and the arrangements print with the visit. Reading a letter now writes its full arrangements into the Correspondence summary."
+  ],
+  [
+    "0.4.8",
+    "Visitors: attach the letter they brought — photograph or upload it, or pick one already in Correspondence — and “Fill in from the letter” reads the names, the deceased and the arrangements into the empty boxes. The letter stays in Correspondence for the record but is told under Presentation only, not printed twice."
+  ],
+  [
+    "0.4.7",
+    "Visitors read as flowing sentences. New: where they came from, “They introduced themselves”, and for a funeral the relationship of the deceased (their mother…) and the arrangements one by one — what, date, time, venue and a note — written out as sentences, e.g. “The one-week observance would be held on Saturday 14 November 2026 at 9.00 a.m. at the AOTC premises.”"
+  ],
+  [
+    "0.4.6",
+    "Visitors: the leader tick appears only when two or more people came, is optional, and for a family or a couple reads “spokesperson”. A funeral group suggests the relationship to the deceased (son, daughter) and the reason, e.g. to announce the passing of their mother."
+  ],
+  [
+    "0.4.5",
+    "Session minutes, Presentation item: the visitors’ paragraphs now show above its box exactly as they will print, and the box is marked for anything extra only (it wrongly said “Summary of the devotion”)."
+  ],
+  [
+    "0.4.4",
+    "Minutes begun before visitors were recorded group by group: a “Change to visitors” button turns the old “Presentation by” and topic into a visitors group, takes anyone added as Presenter out of In attendance, and opens the group so you can finish it."
+  ],
+  [
+    "0.4.3",
+    "The version is now easy to find: under your name in the sidebar, as “About AOTC Track” in the More menu on a phone, and at the foot of every page. Each opens About, with What’s new and Check for updates."
+  ],
+  [
+    "0.4.2",
+    "Session minutes: visitors to the Session are recorded under Presentation, group by group — a presentation, a bereaved family, a couple to be married, a committee or group, a courtesy call. Each group has its people, who introduced them (the Linguist by default, or anyone present), why they came, what was said and the Session's response, and prints as its own paragraph. Visitors are no longer added to In attendance."
+  ],
+  [
+    "0.4.1",
+    "Session minutes: “Minutes recorded by”, under the closing details. Leave it as the Session Clerk, or choose whoever took the minutes; that person then signs at the bottom as Recorder in place of the Session Clerk."
+  ],
+  [
+    "0.4.0",
+    "An update bar: when a new version of AOTC Track is put on the server while you have it open, a bar at the top downloads it and offers Reload. The About page shows the version, its date and What’s new. From now on every update has its own number."
+  ],
+  [
+    "0.3.0",
+    "Everything up to October 2026: quarterly plans and reports, attendance and Sunday services, Session and committee minutes with the tidy-up, matters arising, correspondence, fundraising, elections, marriage files, documents, the new Home page and the glass look."
+  ]
+]

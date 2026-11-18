@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D3F94">
+<title>ShareHub — On this device</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+<style>
+  .offline-wrap { max-width: 720px; margin: 0 auto; padding: 18px 14px calc(24px + env(safe-area-inset-bottom)); }
+  .offline-note { font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="offline-wrap">
+    <div class="page-header">
+      <div>
+        <h1>ShareHub</h1>
+        <div class="sub">You're offline — showing documents kept on this device.</div>
+      </div>
+      <button class="btn btn-secondary" onclick="location.href='/documents.html'">Try online</button>
+    </div>
+    <div class="card" style="padding:0;">
+      <table>
+        <thead><tr><th>Document</th><th>Category</th><th>Saved</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="sub offline-note" style="margin-top:12px;">
+      Copies update automatically the next time you open ShareHub with a connection.
+    </p>
+  </div>
+
+  <div class="pdfviewer" id="pdfViewer" style="display:none;">
+    <div class="pdfviewer-bar">
+      <div class="pdfviewer-title" id="pdfViewerTitle"></div>
+      <button type="button" class="btn btn-secondary btn-sm" id="pdfViewerClose">✕ Close</button>
+    </div>
+    <div class="pdfviewer-pages" id="pdfViewerPages"></div>
+  </div>
+
+  <script src="/js/sharehub-offline.js"></script>
+  <script src="/js/page-offline-docs.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

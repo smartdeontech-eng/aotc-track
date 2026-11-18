@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Annual Plan — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Annual Plan</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <select id="entityFilter" style="min-width:240px; display:none;"></select>
+          <button class="btn btn-primary" id="addBtn" style="display:none;">+ Add activity</button>
+        </div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:20px;">
+        <div class="stat-card"><div class="label">Planned Activities</div><div class="value" id="statActs">—</div></div>
+        <div class="stat-card"><div class="label">Linked to Goals</div><div class="value" id="statLinked">—</div></div>
+        <div class="stat-card"><div class="label">Needing a Goal</div><div class="value" id="statUnlinked">—</div></div>
+        <div class="stat-card"><div class="label">Planned Cost (GHS)</div><div class="value" id="statCost">—</div></div>
+      </div>
+
+      <div id="planBody"></div>
+    </div>
+  </div>
+
+  <!-- Activity add/edit modal -->
+  <div class="modal-overlay" id="actOverlay" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+      <h2 id="actTitle">Add activity</h2>
+      <form id="actForm">
+        <div class="field"><label>Activity / strategy</label><input type="text" id="aDesc" required></div>
+        <div class="field"><label>Under goal</label><select id="aGoal"></select></div>
+        <div class="field-row">
+          <div class="field"><label>Q1 target</label><input type="text" id="aQ1" placeholder="e.g. Done by end of Q1"></div>
+          <div class="field"><label>Q2 target</label><input type="text" id="aQ2"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Q3 target</label><input type="text" id="aQ3"></div>
+          <div class="field"><label>Q4 target</label><input type="text" id="aQ4"></div>
+        </div>
+        <div class="field"><label>Estimated annual cost (GHS, optional)</label><input inputmode="decimal" data-num id="aCost"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="actCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-planning.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

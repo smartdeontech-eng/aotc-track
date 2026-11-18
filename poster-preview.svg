@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1194" viewBox="0 0 1080 1194" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <rect width="1080" height="1194" fill="#FFFFFF"/>
+  <rect width="1080" height="236" fill="#16305F"/>
+  <circle cx="1090" cy="-10" r="150" fill="#FFFFFF" fill-opacity="0.04"/>
+  <text x="52" y="64" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" letter-spacing="3.2" fill="#A9BEE4">PCG ADABRAKA OFFICIAL TOWN</text>
+  <text x="52" y="124" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="56" font-weight="800" fill="#FFFFFF">Q3 2026</text>
+  <text x="52" y="182" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="56" font-weight="800" fill="#FFFFFF">Report Submissions</text>
+  <text x="1028" y="132" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="80" font-weight="800" fill="#00C853">5<tspan font-size="38" font-weight="600" fill="#A9BEE4">/25</tspan></text>
+  <text x="1028" y="166" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#A9BEE4">received</text>
+  <rect x="52" y="200" width="976" height="14" rx="7" fill="#FFFFFF" fill-opacity="0.18"/>
+  <rect x="52" y="200" width="195" height="14" rx="7" fill="#00C853"/>
+  <rect y="236" width="1080" height="68" fill="#FDF4E0"/>
+  <rect y="303" width="1080" height="1" fill="#F0DFBD"/>
+  <text x="52" y="279" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="25" font-weight="700" fill="#6B4E0A">Deadline — Monday 5 October</text>
+  <text x="1028" y="279" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#8A6B1C">5 days left · 20 outstanding</text>
+  <rect x="52" y="323" width="26" height="26" rx="7" fill="#00C853"/>
+      <text x="88" y="342" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#48566B">Submitted</text><rect x="242" y="323" width="26" height="26" rx="7" fill="#FFB300"/>
+      <text x="278" y="342" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#48566B">Reopened</text><rect x="432" y="323" width="26" height="26" rx="7" fill="#F5222D"/>
+      <text x="468" y="342" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#48566B">Pending</text>
+  <text x="56" y="396" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="25" font-weight="800" letter-spacing="1.2" fill="#101A2B">GROUPS</text>
+    <text x="478" y="396" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#8A95A6">3 / 12</text>
+    <rect x="52" y="408" width="430" height="2.5" fill="#101A2B"/><g>
+    <rect x="52" y="418" width="430" height="62" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="449" r="13" fill="#F5222D"/><rect x="70" y="447.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="443" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Bible Study and Prayer</text><text x="101" y="468" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Group</text>
+    <rect x="394" y="436" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="454.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="484" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="508" r="13" fill="#F5222D"/><rect x="70" y="506.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="515.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Blue Cross</text>
+    <rect x="394" y="495" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="513.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="536" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="560" r="13" fill="#F5222D"/><rect x="70" y="558.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="567.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Boys and Girls Brigade</text>
+    <rect x="394" y="547" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="565.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="588" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="612" r="13" fill="#F5222D"/><rect x="70" y="610.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="619.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Children's Service</text>
+    <rect x="394" y="599" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="617.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="640" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="664" r="13" fill="#F5222D"/><rect x="70" y="662.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="671.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Church Choir</text>
+    <rect x="394" y="651" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="669.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="692" width="430" height="48" rx="9" fill="#E6FAEE"/>
+    <circle cx="76" cy="716" r="13" fill="#00C853"/><path d="M70 716 l4 4 l7.5 -8.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="101" y="723.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Ebenezer Yodel Singers</text>
+    <rect x="378" y="703" width="93" height="26" rx="6" fill="#00C853"/>
+    <text x="424.5" y="721.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#04301A">SUBMITTED</text>
+  </g><g>
+    <rect x="52" y="744" width="430" height="48" rx="9" fill="#E6FAEE"/>
+    <circle cx="76" cy="768" r="13" fill="#00C853"/><path d="M70 768 l4 4 l7.5 -8.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="101" y="775.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Junior Youth Fellowship</text>
+    <rect x="378" y="755" width="93" height="26" rx="6" fill="#00C853"/>
+    <text x="424.5" y="773.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#04301A">SUBMITTED</text>
+  </g><g>
+    <rect x="52" y="796" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="820" r="13" fill="#F5222D"/><rect x="70" y="818.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="827.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Men's Fellowship</text>
+    <rect x="394" y="807" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="825.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="848" width="430" height="48" rx="9" fill="#E6FAEE"/>
+    <circle cx="76" cy="872" r="13" fill="#00C853"/><path d="M70 872 l4 4 l7.5 -8.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="101" y="879.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Singing Band</text>
+    <rect x="378" y="859" width="93" height="26" rx="6" fill="#00C853"/>
+    <text x="424.5" y="877.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#04301A">SUBMITTED</text>
+  </g><g>
+    <rect x="52" y="900" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="924" r="13" fill="#F5222D"/><rect x="70" y="922.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="931.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Women's Fellowship</text>
+    <rect x="394" y="911" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="929.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="952" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="976" r="13" fill="#F5222D"/><rect x="70" y="974.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="983.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Young Adults' Fellowship</text>
+    <rect x="394" y="963" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="981.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="52" y="1004" width="430" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="76" cy="1028" r="13" fill="#F5222D"/><rect x="70" y="1026.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="101" y="1035.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Young People's Guild</text>
+    <rect x="394" y="1015" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="432.5" y="1033.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g>
+  <text x="522" y="396" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="25" font-weight="800" letter-spacing="1.2" fill="#101A2B">COMMITTEES</text>
+    <text x="1024" y="396" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#8A95A6">2 / 13</text>
+    <rect x="518" y="408" width="510" height="2.5" fill="#101A2B"/><g>
+    <rect x="518" y="418" width="510" height="62" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="449" r="13" fill="#F5222D"/><rect x="536" y="447.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="443" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Administration and Human Resource</text><text x="567" y="468" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Management</text>
+    <rect x="940" y="436" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="454.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="484" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="508" r="13" fill="#F5222D"/><rect x="536" y="506.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="515.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Building Committee</text>
+    <rect x="940" y="495" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="513.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="536" width="510" height="48" rx="9" fill="#E6FAEE"/>
+    <circle cx="542" cy="560" r="13" fill="#00C853"/><path d="M536 560 l4 4 l7.5 -8.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="567" y="567.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Church Life and Nurture</text>
+    <rect x="924" y="547" width="93" height="26" rx="6" fill="#00C853"/>
+    <text x="970.5" y="565.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#04301A">SUBMITTED</text>
+  </g><g>
+    <rect x="518" y="588" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="612" r="13" fill="#F5222D"/><rect x="536" y="610.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="619.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Counselling and Family Life</text>
+    <rect x="940" y="599" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="617.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="640" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="664" r="13" fill="#F5222D"/><rect x="536" y="662.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="671.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Development and Social Services</text>
+    <rect x="940" y="651" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="669.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="692" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="716" r="13" fill="#F5222D"/><rect x="536" y="714.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="723.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Ecumenical and Social Relations</text>
+    <rect x="940" y="703" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="721.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="744" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="768" r="13" fill="#F5222D"/><rect x="536" y="766.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="775.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Education / School Board</text>
+    <rect x="940" y="755" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="773.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="796" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="820" r="13" fill="#F5222D"/><rect x="536" y="818.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="827.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Finance</text>
+    <rect x="940" y="807" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="825.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="848" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="872" r="13" fill="#F5222D"/><rect x="536" y="870.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="879.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Harvest Committee</text>
+    <rect x="940" y="859" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="877.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="900" width="510" height="48" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="924" r="13" fill="#F5222D"/><rect x="536" y="922.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="931.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Mission and Evangelism</text>
+    <rect x="940" y="911" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="929.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="952" width="510" height="62" rx="9" fill="#FEEAE9"/>
+    <circle cx="542" cy="983" r="13" fill="#F5222D"/><rect x="536" y="981.5" width="12" height="3" rx="1.5" fill="#fff"/>
+    <text x="567" y="977" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Physical Development, Building</text><text x="567" y="1002" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">and Property</text>
+    <rect x="940" y="970" width="77" height="26" rx="6" fill="#F5222D"/>
+    <text x="978.5" y="988.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#FFFFFF">PENDING</text>
+  </g><g>
+    <rect x="518" y="1018" width="510" height="48" rx="9" fill="#E6FAEE"/>
+    <circle cx="542" cy="1042" r="13" fill="#00C853"/><path d="M536 1042 l4 4 l7.5 -8.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="567" y="1049.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Scholarships</text>
+    <rect x="924" y="1029" width="93" height="26" rx="6" fill="#00C853"/>
+    <text x="970.5" y="1047.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#04301A">SUBMITTED</text>
+  </g><g>
+    <rect x="518" y="1070" width="510" height="48" rx="9" fill="#FFF5DE"/>
+    <circle cx="542" cy="1094" r="13" fill="#FFB300"/><rect x="540.5" y="1088.5" width="3" height="11" rx="1.5" fill="#fff"/>
+    <text x="567" y="1101.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="21" font-weight="600" fill="#101A2B">Welfare</text>
+    <rect x="932" y="1081" width="85" height="26" rx="6" fill="#FFB300"/>
+    <text x="974.5" y="1099.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14" font-weight="800" letter-spacing="1" fill="#3D2800">REOPENED</text>
+  </g>
+  <rect x="0" y="1142" width="1080" height="1" fill="#E4E8EE"/>
+  <text x="52" y="1174" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="18" font-weight="500" fill="#8A95A6">Generated from AOTC Track</text>
+  <text x="1028" y="1174" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="18" font-weight="500" fill="#8A95A6">1 October 2026, 15:28</text>
+</svg>

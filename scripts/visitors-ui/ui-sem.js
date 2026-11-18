@@ -1,0 +1,33 @@
+// A seminarian on attachment, then a ministerial probationer, added as visitors.
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || '/opt/npm-tools/node_modules/playwright'); const fs = require('fs');
+let n = 0, fail = 0; const ok = (c, m) => { n++; console.log((c ? '  PASS ' : '  FAIL ') + m); if (!c) fail++; };
+(async () => {
+  const W = +(process.env.W || 1280);
+  const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: W, height: 900 } });
+  await ctx.addCookies([{ name: 'token', value: fs.readFileSync('token.txt', 'utf8').trim(), domain: '127.0.0.1', path: '/' }]);
+  const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto('http://127.0.0.1:4556/minutes.html'); await page.waitForFunction(() => typeof openDoc === 'function'); await page.waitForTimeout(600);
+  await page.evaluate(() => openDoc(1)); await page.waitForTimeout(800);
+  await page.click('.mtab[data-pane="body"]'); await page.click('#addVisitorsBtn'); await page.waitForSelector('#vPurpose');
+  ok(await page.locator('#vPurpose option[value="seminarian"]').count() === 1, '"Seminarian or ministerial probationer" is in the list');
+  await page.selectOption('#vPurpose', 'seminarian'); await page.waitForSelector('#vStudKind');
+  ok(await page.locator('#vStudyYear').isVisible() && await page.locator('#vSeminary').isVisible() && await page.locator('#vAttachFrom').isVisible(), 'seminarian: year, seminary, and the dates with the congregation');
+  await page.locator('#visPeople input').first().fill('Mr Stephen Owusu Boateng');
+  await page.fill('#vStudyYear', 'third'); await page.fill('#vAttachFrom', '2026-10-01'); await page.fill('#vAttachTo', '2026-12-31');
+  await page.locator('#vAttachTo').dispatchEvent('change'); await page.waitForTimeout(300);
+  let prev = await page.locator('#vPreview').innerText();
+  console.log('    ' + prev.replace(/\n/g, '\n    '));
+  ok(/^Seminarian on Attachment — Mr Stephen Owusu Boateng/.test(prev) && /a third-year seminarian from Trinity Theological Seminary/.test(prev) && /attached to the Congregation from 1 October 2026 to 31 December 2026\./.test(prev), 'preview reads as expected');
+  await page.locator('#visForm').screenshot({ path: `shots/seminarian-${W}.png` });
+  await page.selectOption('#vStudKind', 'probationer'); await page.waitForTimeout(300);
+  ok(await page.locator('#vStudyYear').count() === 0 && await page.locator('#vSeminary').count() === 0, 'probationer: year and seminary put away');
+  ok(await page.inputValue('#visPeople input') === 'Mr Stephen Owusu Boateng', 'the name typed is kept when switching');
+  prev = await page.locator('#vPreview').innerText();
+  console.log('    ' + prev.replace(/\n/g, '\n    '));
+  ok(/^Ministerial Probationer — /.test(prev) && /a ministerial probationer/.test(prev), 'probationer preview');
+  await page.click('#visSave'); await page.waitForTimeout(1200);
+  const saved = await page.evaluate(() => fetch('/api/minutes/1').then(r => r.json()).then(d => (d.doc.proceedings.visitors || []).slice(-1)[0]));
+  ok(saved && saved.purpose === 'seminarian' && saved.studentKind === 'probationer', 'saved');
+  ok(errors.length === 0, 'no page errors ' + errors.join('; '));
+  console.log(`\n${n - fail}/${n} checks — ${fail ? 'FAILURES ABOVE' : 'all green'}`); await b.close(); process.exit(fail ? 1 : 0);
+})().catch(e => { console.error(e); process.exit(2); });

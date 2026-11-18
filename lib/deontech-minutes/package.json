@@ -1,0 +1,7 @@
+{
+  "name": "@deontech/minutes",
+  "version": "0.5.2",
+  "description": "Meetings and minutes: the self-writing sentences, numbering, motions, the agenda clock, and the Word and PDF documents.",
+  "main": "index.js",
+  "license": "UNLICENSED"
+}

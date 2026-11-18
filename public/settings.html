@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Settings — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Settings</h1>
+          <div class="sub">Congregation details, notifications and reminders</div>
+        </div>
+      </div>
+
+      <div class="basis-toggle" id="settingsSubtabs" style="margin-bottom:18px;">
+        <button type="button" class="active" data-tab="congregation">Congregation</button>
+        <button type="button" data-tab="notifications">Notifications</button>
+        <button type="button" data-tab="reminders">Reminders</button>
+        <button type="button" data-tab="year">Year</button>
+      </div>
+
+      <!-- Tab 1: Congregation details + crest -->
+      <div id="congregationPanel">
+        <div class="dash-two-col" style="align-items:start;">
+          <div class="card">
+            <h3 style="margin-bottom:14px;">Congregation details</h3>
+            <p class="sub" style="margin:-8px 0 14px;">Used on report letterheads and the District Excel.</p>
+            <form id="settingsForm">
+              <div class="field"><label>Congregation name (full)</label><input type="text" id="companyName" required></div>
+              <div class="field-row">
+                <div class="field"><label>Presbytery</label><input type="text" id="presbytery"></div>
+                <div class="field"><label>District</label><input type="text" id="district"></div>
+              </div>
+              <div class="field"><label>Address (one line per box)</label>
+                <textarea id="addressLines" rows="2" placeholder="Presbyterian Church of Ghana&#10;Adabraka, Accra"></textarea>
+              </div>
+              <div class="field"><label>Phone numbers (one per line)</label>
+                <textarea id="phones" rows="2"></textarea>
+              </div>
+              <div class="field"><label>Official email</label><input type="email" id="email" required></div>
+              <div class="field-row">
+                <div class="field"><label>Session Clerk (signs congregational report)</label><input type="text" id="sessionClerk"></div>
+                <div class="field"><label>Minister-in-Charge</label><input type="text" id="minister"></div>
+              </div>
+              <div class="field" style="max-width:340px;">
+                <label>Absence flag threshold</label>
+                <input inputmode="numeric" data-num id="absenceFlagThreshold" style="max-width:90px;">
+                <p class="sub" style="margin:4px 0 0; font-size:11.5px;">Flag a member for the Session's attention (and alert the committee/group head) after this many consecutive meeting absences without apology. Default 4.</p>
+              </div>
+              <button class="btn btn-primary" type="submit">Save details</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:6px;">Crest / logo</h3>
+            <p class="sub" style="margin:0 0 14px;">Shown on the login page, sidebar and report letterheads.</p>
+            <img id="currentLogo" style="max-width:130px; max-height:130px; border:1px solid var(--rule); border-radius:8px; margin-bottom:14px; display:block; background:#fff; padding:8px;">
+            <div class="img-drop" id="logoDrop">Tap to choose, or drag &amp; drop an image here (JPG, PNG, WEBP — max 3 MB)</div>
+            <input type="file" id="logoFile" accept="image/*" style="display:none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Notifications -->
+      <div id="notificationsPanel" style="display:none;">
+        <div class="dash-two-col" style="align-items:start;">
+          <div class="card">
+            <h3 style="margin-bottom:6px;">Email (SMTP)</h3>
+            <p class="sub" style="margin:0 0 14px;">Used for password resets, report deadline alerts and reminders. Configured in <span class="mono">.env</span> on the server.</p>
+            <button class="btn btn-secondary" id="testEmailBtn" type="button">Send test email to myself</button>
+            <p class="sub" id="testEmailResult" style="margin:10px 0 0;"></p>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom:6px;">SMS (mNotify — sender ID PCG-AOTC)</h3>
+            <p class="sub" style="margin:0 0 14px;">Used for meeting reminders, deadline alerts and login codes. Only +233 (Ghana) numbers deliver.</p>
+            <div class="field" style="margin-bottom:10px;"><label>Test phone number</label><input type="tel" id="testSmsPhone" placeholder="024xxxxxxx" style="max-width:220px;"></div>
+            <button class="btn btn-secondary" id="testSmsBtn" type="button">Send test SMS</button>
+            <p class="sub" id="testSmsResult" style="margin:10px 0 0;"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Year -->
+      <div id="yearPanel" style="display:none;">
+        <!-- "Send announcement to everyone" moved to the Notifications page,
+             where messages are composed next to where they're read (and
+             Local Admins can reach it — this page is admin-only). -->
+        <div class="card" style="max-width:640px; margin-bottom:18px;">
+          <div class="section-title"><h3>Reporting years</h3></div>
+          <p class="sub" style="margin:0 0 12px;">The <b>active</b> year is the one every screen works in — quarterly entry, reports, planning and the dashboard. After a rollover in January, activate the new year here.</p>
+          <table>
+            <thead><tr><th>Year</th><th>Status</th><th></th></tr></thead>
+            <tbody id="yearRows"></tbody>
+          </table>
+          <div style="display:flex; gap:10px; align-items:flex-end; margin-top:12px; flex-wrap:wrap;">
+            <div class="field" style="max-width:160px; margin:0;"><label>Add a year</label><input inputmode="numeric" id="newYear" placeholder="e.g. 2027"></div>
+            <button class="btn btn-secondary" id="addYearBtn">Add year</button>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:640px;">
+          <div class="section-title"><h3>Year rollover</h3></div>
+          <p class="sub" style="margin:0 0 12px;">Creates the next year: all goals are carried over with "previous year actual" filled automatically from this year's figures (TYRP targets cleared for the new template; local targets kept). Activities copy as drafts. Fundraising events are created fresh. Run once, in January.</p>
+          <div class="field" style="max-width:200px;"><label>New year</label><input inputmode="numeric" id="rollYear"></div>
+          <label style="display:flex; gap:8px; align-items:center; font-weight:400; margin-bottom:12px;">
+            <input type="checkbox" id="rollActs" checked style="width:auto;"> Copy activities as drafts
+          </label>
+          <button class="btn btn-primary" id="rollBtn">Roll over</button>
+          <p class="sub" id="rollResult" style="margin-top:10px;"></p>
+        </div>
+      </div>
+
+      <!-- Tab 3: Reminders -->
+      <div id="remindersPanel" style="display:none;">
+        <div class="card">
+          <div class="section-title"><h3>Automatic reminders</h3>
+            <button class="btn btn-secondary btn-sm" id="runRemindersBtn">Run checks now</button>
+          </div>
+          <p class="sub" style="margin:0 0 12px;">Meetings are checked every 15 minutes; report &amp; statutory deadlines hourly. Each reminder is sent once — restarting never double-sends. Recent sends:</p>
+          <table><thead><tr><th>When</th><th>Type</th><th>Detail</th><th>SMS</th><th>Email</th></tr></thead><tbody id="reminderRows"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/page-settings.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Harvest &amp; Fundraising — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Harvest &amp; Fundraising</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <button class="btn btn-secondary" id="statementBtn">📄 Statement PDF</button>
+        <button class="btn btn-secondary" id="sheetBtn"
+          title="Print the numbered basket sheets for a fundraising day">🖨 Print harvest sheets</button>
+        <button class="btn btn-secondary" id="entryBtn">+ Record fundraising day</button>
+        <button class="btn btn-primary" id="sheetsBtn"
+          title="Type in the basket sheets as they come back from the counting tables">⌨ Enter harvest sheets</button>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:20px;">
+        <div class="stat-card"><div class="label">Raised (year)</div><div class="value" id="statRaised">—</div></div>
+        <div class="stat-card"><div class="label">Annual Target</div><div class="value" id="statTarget">—</div></div>
+        <div class="stat-card"><div class="label">Expenses</div><div class="value" id="statSpent">—</div></div>
+        <div class="stat-card"><div class="label">Net Proceeds</div><div class="value" id="statNet">—</div></div>
+        <div class="stat-card"><div class="label">IOUs Outstanding</div><div class="value" id="statIou">—</div></div>
+      </div>
+
+      <div class="card" style="padding:0; margin-bottom:20px;">
+        <div class="section-title" style="padding:16px 16px 0;"><h3>Events</h3></div>
+        <table>
+          <thead><tr><th>Event</th><th>Target (GHS)</th><th>Raised</th><th>Expenses</th><th>Net</th><th></th></tr></thead>
+          <tbody id="eventRows"></tbody>
+        </table>
+      </div>
+
+      <div class="dash-two-col" style="align-items:start;">
+        <div class="card" style="padding:0;">
+          <div class="section-title" style="padding:16px 16px 0;"><h3>Inflow entries</h3></div>
+          <table>
+            <thead><tr><th>Event</th><th>Date</th><th>Services</th><th>Total (GHS)</th><th>Status</th><th></th></tr></thead>
+            <tbody id="entryRows"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="section-title"><h3>Outflows (expenses)</h3></div>
+          <form id="expForm">
+            <div class="field"><label>Event</label><select id="xEvent"></select></div>
+            <div class="field-row">
+              <div class="field"><label>Description</label><input type="text" id="xDesc" placeholder="e.g. Printing of envelopes"></div>
+              <div class="field" style="max-width:140px;"><label>Amount (GHS)</label><input inputmode="decimal" data-num id="xAmount"></div>
+              <div class="field" style="max-width:170px;"><label>Date</label><input type="date" id="xDate"></div>
+            </div>
+            <button class="btn btn-secondary" type="submit">Add expense</button>
+          </form>
+          <table style="margin-top:12px;">
+            <thead><tr><th>Event</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+            <tbody id="expRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0; margin-top:20px;">
+        <div class="section-title" style="padding:16px 16px 0;"><h3>IOU register (pledges)</h3></div>
+        <table>
+          <thead><tr><th>Name</th><th>Contact</th><th>Amount (GHS)</th><th>Proposed payment</th><th>Fundraising day</th><th>Status</th><th></th></tr></thead>
+          <tbody id="iouRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="seedCard" style="margin-top:20px; max-width:640px;">
+        <div class="section-title"><h3>Seed contributions</h3></div>
+        <div class="sub" style="margin-bottom:10px;">The lead gift pledged at the launch to encourage the congregation. These bodies become the seed rows on every fundraising day this year — the money is booked against the day it was made available for, whoever paid early.</div>
+        <div id="seedRows"></div>
+        <div class="field-row" style="margin-top:10px;">
+          <div class="field"><input id="seedNew" placeholder="Add a body — e.g. Men's Fellowship"></div>
+          <button class="btn btn-secondary" id="seedAddBtn" type="button">Add</button>
+        </div>
+        <button class="btn btn-primary" id="saveSeedBtn" type="button">Save seed contributions</button>
+      </div>
+
+      <!-- The week's own activities. Deliberately allowed to be empty: a year
+           that runs none should show no rows on the entry grid. -->
+      <div class="card" id="activityCard" style="margin-top:20px; max-width:640px;">
+        <div class="section-title"><h3>Harvest week activities</h3></div>
+        <div class="sub" style="margin-bottom:10px;">What the week's own activities bring in — a health walk, a bazaar, a games night. Each becomes its own row on every fundraising day this year, counted and reconciled like any other basket, and reported on its own line. Leave it empty if the week has no activities.</div>
+        <div id="activityRows"></div>
+        <div class="field-row" style="margin-top:10px;">
+          <div class="field"><input id="activityNew" placeholder="Add an activity — e.g. Health Walk"></div>
+          <button class="btn btn-secondary" id="activityAddBtn" type="button">Add</button>
+        </div>
+        <button class="btn btn-primary" id="saveActivityBtn" type="button">Save activities</button>
+      </div>
+
+      <div class="card" id="targetCard" style="margin-top:20px; max-width:640px;">
+        <div class="section-title"><h3>Targets</h3></div>
+        <div class="field" style="max-width:260px;"><label>Annual fundraising target (GHS)</label><input inputmode="decimal" data-num id="tAnnual"></div>
+        <div id="tEvents"></div>
+        <button class="btn btn-primary" id="saveTargetsBtn">Save targets</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Harvest basket sheets: print, then type each sheet in as it arrives
+       (17 Nov 2026). Logic in page-fundraising-sheets.js. -->
+  <div class="modal-overlay" id="sOverlay" style="display:none;">
+    <div class="modal hs-modal">
+      <div class="hs-head">
+        <h2 style="margin:0;">Harvest sheets</h2>
+        <button type="button" class="btn btn-secondary btn-sm" id="sCloseBtn">Close</button>
+      </div>
+      <div class="field-row hs-day">
+        <div class="field"><label>Event</label><select id="sEvent"></select></div>
+        <div class="field" style="max-width:170px;"><label>Date</label><input type="date" id="sDate"></div>
+        <div class="field" style="max-width:190px;"><label>Services</label>
+          <select id="sDayType"><option value="joint">Joint service</option><option value="dual">1st and 2nd service</option></select></div>
+        <div class="hs-day-btns">
+          <button type="button" class="btn btn-secondary btn-sm" id="sPrintBtn">🖨 Print sheets</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="sSummaryBtn">📄 Day summary &amp; cash handover</button>
+        </div>
+      </div>
+      <div class="hs-progress" id="sProgress"></div>
+      <div class="hs-board" id="sBoard"></div>
+
+      <div class="hs-entry" id="sEntry">
+        <div class="hs-sheetline">
+          <div class="field" style="max-width:120px;"><label>Sheet no.</label>
+            <input id="sNo" inputmode="numeric" autocomplete="off" placeholder="e.g. 3" data-nav></div>
+          <div class="hs-which" id="sWhich">Type the number printed on the sheet.</div>
+          <div class="field" id="sSeedWrap" style="max-width:230px; display:none;"><label>Seed from</label><select id="sSeedBody" data-nav></select></div>
+          <div class="hs-photo" id="sPhoto"></div>
+        </div>
+        <div class="hs-cols">
+          <div class="hs-col">
+            <table class="hs-cash">
+              <!-- No <thead> on purpose: app.js turns tables with one into cards on phones, and this one must stay a grid. -->
+              <tbody><tr class="hs-headrow"><th>A · Cash</th><th class="num">Pieces</th><th class="num">Amount</th></tr></tbody>
+              <tbody id="sCash"></tbody>
+              <tfoot><tr><th>Cash counted</th><th></th><th class="num mono" id="sCashTotal">0.00</th></tr>
+                <tr><th colspan="2"><label for="sWrittenCash">Cash total written on the sheet</label></th>
+                  <th class="num"><input id="sWrittenCash" inputmode="decimal" class="hs-written" data-nav></th></tr></tfoot>
+            </table>
+          </div>
+          <div class="hs-col">
+            <div class="hs-list" data-list="momo"><b>B · MoMo</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="momo">+ MoMo</button></div>
+            <div class="hs-list" data-list="cheques"><b>C · Cheques</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="cheques">+ Cheque</button></div>
+            <div class="hs-list" data-list="transfers"><b>D · Bank transfers</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="transfers">+ Transfer</button></div>
+            <div class="hs-list" data-list="forex"><b>E · Foreign notes</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="forex">+ Currency</button></div>
+            <div class="hs-list" data-list="ious"><b>F · Pledges (IOU)</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="ious">+ Pledge</button></div>
+          </div>
+        </div>
+        <div class="hs-totals">
+          <div class="hs-sum" id="sSum"></div>
+          <div class="field hs-written-total"><label for="sWrittenTotal">BASKET TOTAL written on the sheet</label>
+            <input id="sWrittenTotal" inputmode="decimal" class="hs-written" data-nav></div>
+          <div class="hs-check" id="sCheck"></div>
+        </div>
+        <label class="hs-corr"><input type="checkbox" id="sCorrected"> The sheet's own adding-up is wrong — save what was typed</label>
+        <div class="field" id="sNoteWrap" style="display:none;"><input id="sNote" placeholder="What was wrong on the sheet? (kept on the record)"></div>
+        <div class="modal-actions hs-actions">
+          <label class="btn btn-secondary" style="margin-right:auto;">📷 Photo of the sheet
+            <input type="file" id="sPhotoInput" accept="image/*" capture="environment" style="display:none;"></label>
+          <button type="button" class="btn btn-secondary" id="sClearBtn">Clear</button>
+          <button type="button" class="btn btn-primary" id="sSaveBtn" title="Ctrl/⌘ + Enter">Save sheet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Entry modal -->
+  <div class="modal-overlay" id="eOverlay" style="display:none;">
+    <div class="modal" style="max-width:1120px; width:96vw; max-height:90vh; overflow:auto;">
+      <h2>Record fundraising day</h2>
+      <!-- Shown when typing from a previous sitting was recovered — see the
+           draft block in page-fundraising.js. -->
+      <div id="eDraftNote" class="note note-warn" style="display:none; margin:0 0 12px; padding:10px 12px;
+           border:1px solid var(--warn,#d19a00); border-radius:8px; background:rgba(209,154,0,.10); font-size:13px;"></div>
+      <form id="entryForm">
+        <div class="field-row">
+          <div class="field"><label>Event</label><select id="eEvent"></select></div>
+          <div class="field" style="max-width:170px;"><label>Date</label><input type="date" id="eDate" required></div>
+          <div class="field" style="max-width:190px;"><label>Day type</label>
+            <select id="eDayType"><option value="joint">Joint service</option><option value="dual">Dual (1st &amp; 2nd)</option></select>
+          </div>
+        </div>
+        <div class="card" style="padding:10px 12px; margin-bottom:12px;">
+          <div class="section-title"><h3 style="font-size:0.92em;">Today's rates</h3></div>
+          <div class="sub" style="margin-bottom:4px;">Set each foreign currency once here. Every basket below converts its foreign notes at these rates.</div>
+          <div id="rateRows"></div>
+          <div id="rateHint" class="sub" style="margin-top:4px;">No foreign currency today — leave this empty.</div>
+          <button type="button" class="btn btn-secondary btn-sm" id="rateAddBtn" style="margin-top:6px;">+ Currency</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead id="catHead"></thead>
+            <tbody id="catRows"></tbody>
+            <tfoot id="catFoot"></tfoot>
+          </table>
+        </div>
+        <div id="methodsWrap" style="margin-top:14px;"></div>
+        <datalist id="curList">
+          <option value="USD"></option><option value="GBP"></option><option value="EUR"></option>
+          <option value="CAD"></option><option value="CHF"></option><option value="NGN"></option><option value="ZAR"></option>
+        </datalist>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="eCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Day results modal -->
+  <div class="modal-overlay" id="vOverlay" style="display:none;">
+    <div class="modal" style="max-width:820px; max-height:90vh; overflow:auto;">
+      <h2 id="vTitle">Fundraising day results</h2>
+      <div id="vBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="vCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-fundraising.js"></script>
+<script src="/js/page-fundraising-sheets.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

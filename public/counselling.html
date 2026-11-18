@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Counselling — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Counselling</h1>
+          <div class="sub">Confidential — visible to CFL and administrators only</div>
+        </div>
+        <button class="btn btn-primary" id="addCaseBtn">+ Open case</button>
+      </div>
+
+      <div class="card" style="padding:0; margin-bottom:20px;">
+        <table>
+          <thead><tr><th>Case</th><th>Client(s)</th><th>Counsellor</th><th>Sessions</th><th>Status</th><th></th></tr></thead>
+          <tbody id="caseRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="max-width:620px;">
+        <div class="section-title"><h3>Counsellors</h3></div>
+        <table><thead><tr><th>Name</th><th>Specialties</th><th>Contact</th><th></th></tr></thead><tbody id="cRows"></tbody></table>
+        <div id="addCounsellorRow" style="display:none; margin-top:10px;">
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="cName"></div>
+            <div class="field"><label>Specialties</label><input type="text" id="cSpec" placeholder="marriage, grief…"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Phone</label><input type="tel" id="cPhone"></div>
+            <div class="field"><label>Email</label><input type="email" id="cEmail"></div>
+          </div>
+          <button class="btn btn-secondary" id="addCounsellorBtn">Add counsellor</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New case modal -->
+  <div class="modal-overlay" id="caseOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Open counselling case</h2>
+      <form id="caseForm">
+        <div class="field"><label>Type</label>
+          <select id="kType"><option value="marriage">Marriage (couple-to-be)</option><option value="family">Family life</option><option value="grief">Grief</option><option value="career">Career</option><option value="other">Other</option></select>
+        </div>
+        <div class="field"><label>Client name(s)</label><input type="text" id="kClients" required placeholder="e.g. Kofi Mensah & Ama Serwaa"></div>
+        <div class="field"><label>Contact phone (optional)</label><input type="tel" id="kPhone"></div>
+        <div class="field"><label>Notes (optional)</label><input type="text" id="kNotes"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="caseCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Open case</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Case detail modal -->
+  <div class="modal-overlay" id="dOverlay" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+      <h2 id="dTitle">Case</h2>
+      <div id="dBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="dCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-counselling.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

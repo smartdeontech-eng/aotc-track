@@ -1,0 +1,32 @@
+const { chromium } = require(process.env.PLAYWRIGHT_PATH || '/opt/npm-tools/node_modules/playwright'); const fs = require('fs');
+let n = 0, fail = 0; const ok = (c, m) => { n++; console.log((c ? '  PASS ' : '  FAIL ') + m); if (!c) fail++; };
+(async () => {
+  const W = +(process.env.W || 1280);
+  const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: W, height: 900 } });
+  await ctx.addCookies([{ name: 'token', value: fs.readFileSync('token.txt', 'utf8').trim(), domain: '127.0.0.1', path: '/' }]);
+  const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto('http://127.0.0.1:4556/minutes.html'); await page.waitForFunction(() => typeof openDoc === 'function'); await page.waitForTimeout(600);
+  await page.evaluate(() => openDoc(1)); await page.waitForTimeout(800);
+  await page.click('.mtab[data-pane="body"]'); await page.click('#addVisitorsBtn'); await page.waitForSelector('#vPurpose');
+  await page.selectOption('#vPurpose', 'marriage'); await page.waitForSelector('#vtradDate');
+  ok(await page.locator('#vtradDate').isVisible() && await page.locator('#vchurchVenue').isVisible(), 'marriage shows Traditional marriage and Church wedding, each with date, time and where');
+  await page.waitForSelector('#vCase', { timeout: 5000 }).catch(() => {});
+  ok(await page.locator('#vCase').count() === 1, 'the marriage case picker is offered');
+  await page.selectOption('#vCase', '1'); await page.waitForTimeout(300);
+  ok(await page.inputValue('#vtradDate') === '2026-11-14' && await page.inputValue('#vchurchTime') === '1:00 pm' && await page.inputValue('#vchurchVenue') === 'the AOTC Chapel', 'choosing the case fills both occasions');
+  const prev = await page.locator('#vPreview').innerText();
+  console.log('  preview:\n    ' + prev.replace(/\n/g, '\n    '));
+  ok(/^Intended Marriage — Mr Kwabena Asante and Miss Abena Darko/.test(prev), 'preview heading');
+  ok(/to announce their intended marriage\. The traditional marriage would be held on Saturday 14 November 2026 at 10:00 am at the bride’s family house, Kaneshie, and the church wedding on Saturday 5 December 2026 at 1:00 pm at the AOTC Chapel\./.test(prev), 'preview paragraph with both occasions');
+  await page.fill('#vtradTime', '9.30 a.m.'); await page.locator('#vtradTime').blur(); await page.waitForTimeout(200);
+  ok(await page.inputValue('#vtradTime') === '9:30 am', 'a time typed any way is put in the minutes’ style');
+  await page.locator('#visForm').screenshot({ path: `shots/marriage-${W}.png` });
+  await page.click('#visSave'); await page.waitForTimeout(1200);
+  const saved = await page.evaluate(() => fetch('/api/minutes/1').then(r => r.json()).then(d => (d.doc.proceedings.visitors || [])[0]));
+  ok(saved && saved.events && saved.events.length === 2 && saved.events[0].time === '9:30 am', 'saved with both occasions');
+  // reopen and check it comes back
+  await page.evaluate(() => MinutesVisitors.open(0)); await page.waitForSelector('#vtradDate');
+  ok(await page.inputValue('#vtradTime') === '9:30 am' && await page.inputValue('#vchurchDate') === '2026-12-05', 'reopening the visit shows both occasions again');
+  ok(errors.length === 0, 'no page errors ' + errors.join('; '));
+  console.log(`\n${n - fail}/${n} checks — ${fail ? 'FAILURES ABOVE' : 'all green'}`); await b.close(); process.exit(fail ? 1 : 0);
+})().catch(e => { console.error(e); process.exit(2); });

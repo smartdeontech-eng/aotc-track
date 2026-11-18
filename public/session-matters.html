@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Outstanding Matters — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  .st{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+      border-radius:5px;padding:2px 7px;white-space:nowrap;}
+  .st.open{background:rgba(128,140,170,.18);color:#59617a;}
+  .st.in-progress{background:rgba(29,63,148,.13);color:#1D3F94;}
+  .st.decided{background:rgba(20,140,90,.14);color:#136b47;}
+  .st.closed{background:rgba(128,140,170,.12);color:#8a8f9c;}
+  .flag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+        border-radius:5px;padding:2px 6px;margin-left:6px;}
+  .flag.overdue{background:rgba(200,40,40,.14);color:#b02a2a;}
+  .flag.stale{background:rgba(200,140,20,.16);color:#8a6100;}
+  .stat-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px;}
+  .stat-row b{display:block;font-size:19px;}
+  .fbar{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;}
+  .fbar button{border:1px solid var(--line,#d5dae6);background:transparent;color:inherit;font:inherit;font-size:12.5px;
+               font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;opacity:.7;}
+  .fbar button.on{background:#1D3F94;border-color:#1D3F94;color:#fff;opacity:1;}
+  .mrow{border:1px solid var(--line,#d5dae6);border-radius:11px;padding:12px 14px;margin-bottom:9px;}
+  .mrow.done{opacity:.55;}
+  /* A heading and the sub-notes gathered beneath it. The heading is the agenda
+     line; the sub-notes are what the register actually tracks and clears. */
+  .mgroup{border:1px solid var(--line,#d5dae6);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+  .mgroup.done{opacity:.6;}
+  .ghead{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;}
+  .ghead b{font-size:15px;}
+  .gcount{font-size:11.5px;font-weight:600;opacity:.6;margin-left:auto;white-space:nowrap;}
+  .gmeta{font-size:11.5px;opacity:.6;margin-top:2px;}
+  .snotes{margin-top:10px;border-left:2px solid #1D3F94;padding-left:12px;}
+  .snote{padding:9px 0;}
+  .snote + .snote{border-top:1px solid var(--line,#d5dae6);}
+  .snote.done{opacity:.55;}
+  .snote .mhead b{font-size:13.5px;}
+  .mhead{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+  .mhead b{font-size:14px;flex:1;min-width:200px;}
+  .meta{font-size:11.5px;opacity:.65;margin-top:3px;}
+  .hist{margin-top:9px;border-left:2px solid var(--line,#d5dae6);padding-left:11px;}
+  .hist div{font-size:12px;margin-bottom:5px;}
+  .hist .when{font-weight:600;opacity:.7;}
+  .pick{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line,#d5dae6);}
+  .pick input[type=checkbox]{width:auto;margin-top:3px;}
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Outstanding Matters</h1>
+          <div class="sub">What the Session is carrying, meeting to meeting, until it is cleared</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="pullBtn">Bring in from minutes</button>
+          <button class="btn btn-primary" id="addBtn">+ Add a matter</button>
+        </div>
+      </div>
+
+      <div class="stat-row card">
+        <div><b id="sOpen">0</b><span class="sub">Still open</span></div>
+        <div><b id="sProg">0</b><span class="sub">In progress</span></div>
+        <div><b id="sDecided">0</b><span class="sub">Decided</span></div>
+        <div><b id="sClosed">0</b><span class="sub">Closed</span></div>
+        <div><b id="sFlagged">0</b><span class="sub">Needing attention</span></div>
+      </div>
+
+      <div class="fbar" id="filters"></div>
+      <div id="rows" data-skel="cards"></div>
+      <p class="sub" id="emptyNote" style="display:none;"></p>
+
+      <div class="card" id="decCard" style="margin-top:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <h3 style="margin:0;">Decisions of the Session</h3>
+          <input type="search" id="decQ" placeholder="Search decisions…" style="max-width:260px;">
+        </div>
+        <p class="sub" style="margin:4px 0 10px; font-size:11.5px;">Every <i>Decision:</i> line in the minutes, newest first. Minutes from before the label are read for sentences recording the Session agreeing, approving or deferring; those are marked <i>from the prose</i>.</p>
+        <div id="decRows"><p class="sub">Loading…</p></div>
+      </div>
+
+      <p class="sub" style="margin-top:16px;">
+        A matter is flagged <span class="flag overdue">overdue</span> when its target date has passed, and
+        <span class="flag stale">stale</span> once the Session has met three times since it was raised without
+        clearing it. Nothing is ever removed automatically — clearing a matter is the Session's decision.
+      </p>
+    </div>
+  </div>
+
+  <!-- Add / edit -->
+  <div class="modal-overlay" id="mOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="mTitle">Add a matter</h2>
+      <form id="mForm">
+        <div class="field"><label>Agenda heading</label>
+          <input type="text" id="fHeading" list="headingList" maxlength="200" placeholder="e.g. Update on Building Project">
+          <datalist id="headingList"></datalist>
+          <p class="sub" style="margin:4px 0 0; font-size:11.5px;">The item on the agenda this belongs under. Several matters share one heading, and the next agenda carries the heading — dealing with it deals with everything beneath it. Leave blank and the subject is used.</p>
+        </div>
+        <div class="field"><label>Subject</label>
+          <input type="text" id="fSubject" required maxlength="200" placeholder="e.g. Second legal counsel on the contractor's claim"></div>
+        <div class="field"><label>What is outstanding</label>
+          <textarea id="fDetail" rows="4" placeholder="What was raised, and what the Session is waiting for"></textarea></div>
+        <div class="field-row">
+          <div class="field"><label>Who is to act</label>
+            <input type="text" id="fOwner" list="ownerList" placeholder="A Session member, or a committee">
+            <datalist id="ownerList"></datalist>
+            <p class="sub" style="margin:4px 0 0; font-size:11.5px;">A short form is written out in full from the roster.</p>
+          </div>
+          <div class="field"><label>Target date</label><input type="date" id="fDue"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>First raised</label><input type="date" id="fRaised"></div>
+          <div class="field"><label>Status</label><select id="fStatus"></select></div>
+        </div>
+        <div class="field"><label>Decision of the Session</label>
+          <textarea id="fDecision" rows="3" placeholder="Filled in once the Session has decided"></textarea></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="mCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Record what was said -->
+  <div class="modal-overlay" id="uOverlay" style="display:none;">
+    <div class="modal">
+      <h2>What did the Session say?</h2>
+      <p class="sub" id="uSubject" style="margin-top:-6px;"></p>
+      <form id="uForm">
+        <div class="field"><label>At which meeting</label><select id="uMeeting"></select></div>
+        <div class="field"><label>What was reported or decided</label>
+          <textarea id="uNote" rows="4" required placeholder="e.g. The Treasurer reported that two quotations had been received."></textarea></div>
+        <div class="field"><label>Change the status to</label><select id="uStatus"></select></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="uCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Record it</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bring in from minutes -->
+  <div class="modal-overlay" id="pOverlay" style="display:none;">
+    <div class="modal" style="max-width:620px;">
+      <h2>Bring matters in from minutes</h2>
+      <div class="field"><label>Which minutes</label><select id="pMeeting"></select></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+        <button type="button" class="btn btn-secondary btn-sm" id="pScanBtn">Find the open items</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="pAiBtn">Read the whole minutes with AI</button>
+      </div>
+      <p class="sub" id="pNote" style="margin-top:0;">
+        “Find the open items” lists the rows already carrying an unfinished action.
+        Reading the whole minutes goes further — it looks for anything deferred, awaited or assigned
+        anywhere in the record. Either way nothing is saved until you choose.
+      </p>
+      <div id="pList" style="max-height:340px; overflow:auto;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="pCancel">Close</button>
+        <button type="button" class="btn btn-primary" id="pAddBtn" disabled>Add the ticked ones</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-session-matters.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

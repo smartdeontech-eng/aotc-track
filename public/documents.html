@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>ShareHub — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>ShareHub</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" id="catBtn" style="display:none;">Categories</button>
+          <button class="btn btn-primary" id="uploadBtn" style="display:none;">+ Upload document</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="field-row" style="align-items:flex-end;">
+          <div class="field" style="flex:2; margin:0;">
+            <label>Search</label>
+            <input type="search" id="searchInput" placeholder="Title, file name or uploader…">
+          </div>
+          <div class="field" style="flex:1; margin:0;">
+            <label>Category</label>
+            <select id="catFilter"><option value="">All categories</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card doc-list" id="rows"></div>
+    </div>
+  </div>
+
+  <!-- Upload / edit modal -->
+  <div class="modal-overlay" id="docOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="docTitle">Upload document</h2>
+      <form id="docForm">
+        <div class="field" id="fileField">
+          <label>File <span class="sub" style="font-weight:normal;">(PDF, Word, Excel, PowerPoint, image, TXT/CSV — max 25 MB)</span></label>
+          <input type="file" id="dFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.txt,.csv">
+        </div>
+        <div class="field"><label>Title</label><input type="text" id="dTitle" maxlength="160" placeholder="e.g. Session Minutes — July 2026"></div>
+        <div class="field-row">
+          <div class="field"><label>Category</label><select id="dCategory"></select></div>
+          <div class="field" id="dNewCatField" style="display:none;"><label>New category name</label><input type="text" id="dNewCat" maxlength="60" placeholder="e.g. Building Project"></div>
+        </div>
+        <div class="field"><label>Description (optional)</label><input type="text" id="dDesc" maxlength="600"></div>
+        <p class="sub" id="docNote" style="margin:0 0 10px;"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="docCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="docSaveBtn">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Details / actions sheet (the ⋯ button) -->
+  <div class="modal-overlay" id="detailsOverlay" style="display:none;">
+    <div class="modal" style="max-width:440px;">
+      <h2 id="detailsTitle" style="font-size:18px;"></h2>
+      <div id="detailsBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="detailsCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permissions modal (admin only) -->
+  <div class="modal-overlay" id="permOverlay" style="display:none;">
+    <div class="modal" style="max-width:560px;">
+      <h2>Who can access this?</h2>
+      <p class="sub" id="permDocName" style="margin:-4px 0 12px;"></p>
+      <div class="field">
+        <label>Everyone (all signed-in users)</label>
+        <select id="permEveryone">
+          <option value="none">No access</option>
+          <option value="view">View only</option>
+          <option value="download">View &amp; download</option>
+        </select>
+      </div>
+      <div class="section-title" style="margin-top:14px;"><h3>Per-role overrides</h3></div>
+      <p class="sub" style="margin:0 0 8px;">A role override beats the “everyone” level. Admins always have full access.</p>
+      <div id="permRoles"></div>
+      <div class="section-title" style="margin-top:14px;"><h3>Per-person overrides</h3></div>
+      <p class="sub" style="margin:0 0 8px;">A person-level override beats everything else (except the admin tier and the uploader).</p>
+      <div id="permUsers" style="max-height:32vh; overflow-y:auto;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="permCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="permSaveBtn">Save access</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories modal (admin only) -->
+  <div class="modal-overlay" id="catOverlay" style="display:none;">
+    <div class="modal" style="max-width:460px;">
+      <h2>Categories</h2>
+      <div id="catList" style="margin-bottom:12px;"></div>
+      <form id="catForm" style="display:flex; gap:8px;">
+        <input type="text" id="catName" maxlength="60" placeholder="New category name" style="flex:1;">
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="catCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-app PDF viewer (works the same on phone and PC; view-only PDFs
+       arrive already watermarked by the server) -->
+  <div class="pdfviewer" id="pdfViewer" style="display:none;">
+    <div class="pdfviewer-bar">
+      <div class="pdfviewer-title" id="pdfViewerTitle"></div>
+      <button type="button" class="btn btn-secondary btn-sm" id="pdfViewerClose">✕ Close</button>
+    </div>
+    <div class="pdfviewer-pages" id="pdfViewerPages"></div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/sharehub-offline.js"></script>
+  <script src="/js/page-documents.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Quarterly Entry — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Quarterly Entry</h1>
+          <div class="sub" id="countLabel"></div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="entityFilter" style="min-width:220px; display:none;"></select>
+          <div class="basis-toggle" id="quarterToggle">
+            <button data-q="1">Q1</button><button data-q="2">Q2</button>
+            <button data-q="3">Q3</button><button data-q="4">Q4</button>
+          </div>
+          <button class="btn btn-primary" id="submitBtn" style="display:none;">Submit quarter</button>
+          <button class="btn btn-danger" id="unlockBtn" style="display:none;">Unlock</button>
+        </div>
+      </div>
+
+      <div id="lockBanner" class="card" style="display:none; border-left:4px solid var(--pcg-green); margin-bottom:18px;">
+        <b>✓ This quarter has been submitted and is locked.</b>
+        <span class="sub" id="lockInfo"></span>
+        <div id="changeReqArea" style="margin-top:10px;"></div>
+      </div>
+
+      <div id="reopenBanner" class="card" style="display:none; border-left:4px solid var(--pcg-gold, #C9A227); margin-bottom:18px;">
+        <b>⏱ Change window open — edits allowed.</b>
+        <span class="sub" id="reopenInfo"></span>
+      </div>
+
+      <div id="approvalsCard" class="card" style="display:none; margin-bottom:18px;">
+        <div class="section-title"><h3>Change requests awaiting approval</h3></div>
+        <p class="sub" style="margin:0 0 10px;">A committee/group or the Reporting Coordinator has asked to reopen a submitted quarter. Approving opens a 48-hour edit window; it re-locks automatically on resubmission or expiry.</p>
+        <table>
+          <thead><tr><th>Committee/Group</th><th>Quarter</th><th>Requested by</th><th>Reason</th><th></th></tr></thead>
+          <tbody id="approvalRows"></tbody>
+        </table>
+      </div>
+
+      <div id="entryBody" data-skel="cards"></div>
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-entry.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

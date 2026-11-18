@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Session Meetings — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<style>
+  .roll-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px;}
+  .roll-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--line,#d5dae6);border-radius:9px;}
+  .roll-row .who{flex:1;min-width:0;}
+  .roll-row .who b{display:block;font-size:13px;font-weight:600;}
+  .roll-row .who span{font-size:11px;opacity:.6;}
+  .roll-seg{display:flex;gap:2px;background:rgba(128,140,170,.14);border-radius:8px;padding:2px;}
+  .roll-seg button{border:none;background:transparent;color:inherit;font:inherit;font-size:11px;font-weight:700;
+                   padding:4px 8px;border-radius:6px;cursor:pointer;opacity:.65;}
+  /* Green for present, amber for an apology, grey for absent — the roll
+     should be readable across the table at a glance. */
+  .roll-seg button.on{background:#157F4C;color:#fff;opacity:1;}
+  .roll-seg button.on.apo{background:#B7791F;}
+  .roll-seg button.on.abs{background:#8a8f9c;}
+  .roll-row.is-present{border-color:rgba(21,127,76,.45);}
+  .roll-row.is-apology{border-color:rgba(183,121,31,.45);}
+  .roll-counts{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;}
+  .roll-counts b{display:block;font-size:19px;}
+  .ag-row{display:grid;grid-template-columns:96px 70px 1fr 190px 34px;gap:8px;align-items:start;margin-bottom:7px;}
+  .ag-row .at{font-family:ui-monospace,monospace;font-size:12px;padding-top:9px;opacity:.75;}
+  .ag-sub{display:grid;grid-template-columns:1fr 190px 34px;gap:8px;margin:5px 0 5px 174px;}
+  .ag-row select,.ag-sub select,.ag-row .respOther,.ag-sub .respOther{width:100%;font-size:12.5px;}
+  @media(max-width:800px){.ag-row{grid-template-columns:1fr;}.ag-sub{margin-left:14px;grid-template-columns:1fr;}}
+  .mtabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line,#d5dae6);margin:0 0 18px;}
+  .mtab{padding:9px 14px;border:none;background:transparent;color:inherit;font:inherit;font-weight:600;font-size:13px;
+        border-bottom:2px solid transparent;cursor:pointer;opacity:.6;}
+  .mtab.active{opacity:1;border-bottom-color:#1D3F94;}
+  .pane{display:none;} .pane.active{display:block;}
+  .muted{opacity:.65;font-size:12.5px;}
+</style>
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>Session Meetings</h1>
+          <div class="sub" id="headSub">Schedule a meeting, take the roll, then write the minutes</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="backBtn" style="display:none;">‹ All meetings</button>
+          <button class="btn btn-primary" id="newBtn">+ Schedule a meeting</button>
+        </div>
+      </div>
+
+      <!-- ============ LIST ============ -->
+      <div id="listView">
+        <div class="card" style="padding:0;">
+          <table>
+            <thead><tr><th>Date</th><th>Title</th><th>Venue</th><th>Roll</th><th>Minutes</th><th></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p class="sub" style="margin-top:10px;">
+          A notice goes by SMS and email to everyone on the Session with contact details, and the app
+          sends reminders 24 hours and 2 hours before the meeting. Scheduling quietly sends nothing.
+        </p>
+
+        <div class="card" style="margin-top:16px; max-width:640px;">
+          <div class="section-title"><h3>What notices say about the agenda</h3></div>
+          <p class="sub" style="margin:-6px 0 10px;">
+            Most of the Session are not app users, so the notice should point them where the agenda
+            really goes. This sentence is added to every SMS and to emails that carry no attachment.
+            Leave it empty to say nothing.
+          </p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="agendaNote" maxlength="200" style="flex:1; min-width:260px;"
+                   placeholder="e.g. The agenda will be shared on the WhatsApp group.">
+            <button class="btn btn-secondary btn-sm" id="agendaNoteSave">Save</button>
+          </div>
+          <p class="sub" style="margin:8px 0 0;">The agenda PDF is attached to the email notice whenever an agenda has been entered.</p>
+        </div>
+      </div>
+
+      <!-- ============ ONE MEETING ============ -->
+      <div id="detail" style="display:none;">
+        <div class="mtabs">
+          <button class="mtab active" data-pane="roll">Attendance</button>
+          <button class="mtab" data-pane="agenda">Agenda</button>
+          <button class="mtab" data-pane="details">Details</button>
+        </div>
+
+        <div class="pane active" id="pane-roll">
+          <div class="card">
+            <div class="roll-counts">
+              <div><b id="cPresent">0</b><span class="sub">Present</span></div>
+              <div><b id="cApology">0</b><span class="sub">Apologies</span></div>
+              <div><b id="cAbsent">0</b><span class="sub">Absent</span></div>
+              <div><b id="cAttend">0</b><span class="sub">In attendance</span></div>
+              <div style="margin-left:auto; align-self:center;">
+                <button class="btn btn-secondary btn-sm" id="allPresentBtn">Mark all present</button>
+              </div>
+            </div>
+            <div class="roll-grid" id="rollGrid"></div>
+            <p class="sub" id="rollEmpty" style="display:none;">
+              No one is on the Session yet — set the roster up under AOTC Session → Composition.
+            </p>
+          </div>
+
+          <div class="section-title" style="margin-top:24px;">
+            <h3>In attendance</h3>
+            <button class="btn btn-secondary btn-sm" id="addGuestBtn">+ Add</button>
+          </div>
+          <p class="sub" style="margin:-6px 0 12px;">
+            Visitors and others sitting in — presenters, staff, guests. They print in their own block
+            in the minutes and are not counted as members of the court.
+          </p>
+          <p class="sub" id="linguistNote" style="margin:-6px 0 12px;"></p>
+          <div class="card" id="guestList"></div>
+        </div>
+
+        <div class="pane" id="pane-agenda">
+          <div class="card">
+            <p class="sub" style="margin-top:0;">Each row's clock time is worked out from the start time and the durations above it.</p>
+            <div id="agRows"></div>
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" id="agAddBtn">+ Add item</button>
+              <button class="btn btn-secondary btn-sm" id="agStdBtn">Standard running order</button>
+              <button class="btn btn-secondary btn-sm" id="agStdRepBtn">Standard + reports</button>
+              <a class="btn btn-secondary btn-sm" id="dlAgDocx" href="#">Agenda (Word)</a>
+              <a class="btn btn-secondary btn-sm" id="dlAgPdf" href="#" target="_blank">Agenda (PDF)</a>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openDocViewer(document.getElementById('dlAgPdf').href, 'Agenda', { image: true })" title="The agenda as a picture, to post in the WhatsApp group">Agenda (image)</button>
+              <button class="btn btn-secondary btn-sm" id="waBtn">Agenda for WhatsApp</button>
+            </div>
+            <div id="onDutyNote" class="sub" style="margin-top:12px;"></div>
+            <p class="sub" style="margin-top:8px;">
+              “Copy for WhatsApp” puts the meeting details and the whole agenda on your clipboard,
+              formatted for the group. Attach the PDF alongside it if you want members to have the sheet itself.
+            </p>
+          </div>
+        </div>
+
+        <div class="pane" id="pane-details">
+          <div class="card">
+            <div class="field-row">
+              <div class="field"><label>Date</label><input type="date" id="dDate"></div>
+              <div class="field"><label>Starts at</label><input type="time" id="dTime"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Title</label><input type="text" id="dTitle"></div>
+              <div class="field">
+                <label>Venue</label>
+                <select id="dVenue"></select>
+                <input type="text" id="dVenueOther" placeholder="Type the venue" style="margin-top:6px; display:none;">
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <button class="btn btn-secondary btn-sm" id="reSyncBtn">Update the Meetings page</button>
+              <button class="btn btn-secondary btn-sm" id="reNoticeBtn">Send the notice now</button>
+              <button class="btn btn-secondary btn-sm" id="waNoticeBtn">Notice for WhatsApp</button>
+              <span class="muted" id="detailStatus"></span>
+            </div>
+            <p class="sub" id="noticeState" style="margin-top:10px;"></p>
+            <p class="sub" style="margin-top:6px;">
+              Updating the Meetings page never texts anyone. Send the notice only when you want the
+              Session told — you can send it more than once if the date or venue moves.
+            </p>
+          </div>
+          <div class="card" style="margin-top:14px;">
+            <button class="btn btn-danger btn-sm" id="deleteBtn">Delete this meeting</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px;" id="mattersCard">
+          <div class="section-title"><h3>Outstanding matters to review</h3></div>
+          <div id="mattersList"></div>
+        </div>
+
+        <div class="card" style="margin-top:18px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <b style="font-size:14px;">Minutes</b>
+          <span class="sub" id="minutesState" style="flex:1;"></span>
+          <a class="btn btn-primary btn-sm" id="minutesBtn" href="#">Write the minutes</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="modal-overlay" id="newOverlay" style="display:none;">
+    <div class="modal">
+      <h2>Schedule a Session meeting</h2>
+      <form id="newForm">
+        <div class="field-row">
+          <div class="field"><label>Date</label><input type="date" id="nDate" required></div>
+          <div class="field"><label>Starts at</label><input type="time" id="nStart" value="18:30"></div>
+        </div>
+        <div class="field">
+          <label>Kind of meeting</label>
+          <select id="nKind"></select>
+          <input type="text" id="nTitle" placeholder="Or give it a title of its own"
+                 style="margin-top:6px; display:none;">
+          <p class="sub" style="margin:4px 0 0; font-size:11.5px;">
+            This heads the minutes and is how the meeting is named on later agendas —
+            <i>Review of minutes for 14th May 2026 Emergency Session Meeting</i>.</p>
+        </div>
+        <div class="field">
+          <label>Venue</label>
+          <select id="nVenue"></select>
+          <input type="text" id="nVenueOther" placeholder="Type the venue" style="margin-top:6px; display:none;">
+        </div>
+        <p class="sub">
+          Either way the meeting appears on the main Meetings page. <b>Schedule quietly</b> tells nobody —
+          useful while the date is still being settled; you can send the notice later from the Details tab.
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="newCancel">Cancel</button>
+          <button type="button" class="btn btn-secondary" id="newQuiet">Schedule quietly</button>
+          <button type="submit" class="btn btn-primary">Schedule &amp; notify</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- WhatsApp post -->
+  <div class="modal-overlay" id="waOverlay" style="display:none;">
+    <div class="modal" style="max-width:560px;">
+      <h2 id="waTitle">Post to the WhatsApp group</h2>
+      <p class="sub" style="margin-top:-6px;">
+        Edit it if you like, then copy and paste it into the Session group.
+      </p>
+      <textarea id="waText" rows="14" style="width:100%; font-family:inherit; font-size:13.5px; line-height:1.55;"></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="waClose">Close</button>
+        <a class="btn btn-secondary" id="waPdf" href="#" target="_blank">Agenda (PDF)</a>
+        <button type="button" class="btn btn-secondary" onclick="openDocViewer(document.getElementById('waPdf').href, 'Agenda', { image: true })">Agenda (image)</button>
+        <button type="button" class="btn btn-primary" id="waCopy">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In attendance -->
+  <div class="modal-overlay" id="guestOverlay" style="display:none;">
+    <div class="modal">
+      <h2 id="guestTitle">Add someone in attendance</h2>
+      <form id="guestForm">
+        <div class="field"><label>Name</label><input type="text" id="gName" required></div>
+        <div class="field"><label>Short title <span class="sub">(printed beside the name, in capitals)</span></label><input type="text" id="gPosition" maxlength="32" placeholder="e.g. Seminarian"></div>
+        <div class="field"><label>Details <span class="sub">(optional — printed on a line under the name)</span></label><input type="text" id="gDetails" maxlength="300" placeholder="e.g. Third-year student, Trinity Theological Seminary; on attachment"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="guestCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="guestSave">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+  <script src="/js/app.js"></script>
+  <script src="/js/agenda-editor.js"></script>
+  <script src="/js/session-venues.js"></script>
+  <script src="/js/page-session-meetings.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>

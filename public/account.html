@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D3F94">
+<link rel="icon" href="/img/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>My Account — AOTC Track</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/vendor/glass/glass.css">
+<script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1>My Account</h1>
+          <div class="sub">Your sign-in security and recent activity</div>
+        </div>
+      </div>
+
+      <div class="basis-toggle" id="accountTopTabs" style="margin-bottom:18px;">
+        <button type="button" class="active" data-tab="security">Security</button>
+        <button type="button" data-tab="activity">Sign-in &amp; activity</button>
+      </div>
+
+      <div id="securityPanel">
+      <div class="card" style="margin-bottom:18px;">
+        <h3 style="margin-bottom:6px;">Profile</h3>
+        <p class="sub" style="margin:0 0 14px;">Your name, sign-in email, and phone number. Adding a phone number here also unlocks SMS as a two-factor option below.</p>
+        <form id="profileForm">
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="profileName" required></div>
+            <div class="field"><label>Phone</label><input type="tel" id="profilePhone" placeholder="e.g. 0244000000"></div>
+          </div>
+          <div class="field"><label>Email (used to sign in)</label><input type="email" id="profileEmail" required></div>
+          <div class="field"><label>Confirm your password to save</label><input type="password" id="profileCurrentPassword" required></div>
+          <button class="btn btn-primary" type="submit">Save profile</button>
+        </form>
+        <!-- Step-up confirmation — only shown for the seed admin account
+             when the email or phone actually changed. See PUT /auth/me. -->
+        <form id="profileConfirmForm" style="display:none; margin-top:14px; border-top:1px solid var(--rule); padding-top:14px;">
+          <p class="sub" id="profileConfirmMsg" style="margin:0 0 10px;"></p>
+          <div class="field"><label id="profileConfirmLabel">Enter the code</label><input type="text" id="profileConfirmCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code"></div>
+          <p class="sub" style="margin:-4px 0 10px; font-size:11.5px;">Lost access to that? <a href="#" id="profileConfirmBackupLink">Use a backup code instead</a>.</p>
+          <div class="field" id="profileConfirmBackupWrap" style="display:none;"><label>Backup code</label><input type="text" id="profileConfirmBackupCode"></div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary" id="profileConfirmCancelBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Confirm change</button>
+          </div>
+        </form>
+      </div>
+      <div class="dash-two-col" style="align-items:start;">
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Change password</h3>
+          <form id="pwForm">
+            <div class="field"><label>Current password</label><input type="password" id="currentPassword" required></div>
+            <div class="field">
+              <label>New password</label>
+              <input type="password" id="newPassword" required minlength="10">
+              <div id="pwMeter" style="margin-top:8px;"></div>
+            </div>
+            <button class="btn btn-primary" type="submit">Update password</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:6px;">Two-factor authentication</h3>
+          <p class="sub" style="margin:0 0 14px;">Every account requires a one-time code at each login — by email or by SMS, your choice, and you can switch between them any time (handy if you ever lose access to one). An authenticator app is available too, for a stronger option.</p>
+          <span class="badge badge-done" id="twoFaStatusBadge" style="margin-bottom:12px; display:inline-block;">Verifying via <span id="twoFaMethodLabel"></span></span>
+
+          <div id="twoFaChangeMethod">
+            <div class="field">
+              <label>Switch to</label>
+              <div id="twoFaMethodChoice" style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                <label style="display:flex; gap:8px; font-weight:400; align-items:flex-start;"><input type="radio" name="twoFaMethod" value="totp" style="width:auto; margin-top:3px;"> <span>Authenticator app <span style="color:var(--muted);">— Microsoft/Google Authenticator, Authy</span></span></label>
+                <label style="display:flex; gap:8px; font-weight:400; align-items:flex-start;"><input type="radio" name="twoFaMethod" value="email" style="width:auto; margin-top:3px;"> <span>Email <span style="color:var(--muted);">— a code sent to your email each login</span></span></label>
+                <label style="display:flex; gap:8px; font-weight:400; align-items:flex-start;"><input type="radio" name="twoFaMethod" value="sms" style="width:auto; margin-top:3px;"> <span>Text message (SMS) <span style="color:var(--muted);">— a code to your phone</span> <span id="smsNoPhoneNote" style="display:none; color:var(--red);">(add a phone number first)</span></span></label>
+              </div>
+            </div>
+            <div class="field"><label>Confirm your password to switch</label><input type="password" id="switchMethodPassword" required></div>
+            <div><button class="btn btn-primary" id="start2faBtn">Send a code &amp; switch</button></div>
+          </div>
+
+          <!-- Setup flow -->
+          <div id="setup2fa" style="display:none; margin-top:16px; border-top:1px solid var(--rule); padding-top:16px;">
+            <div id="setupTotp" style="display:none;">
+              <p class="sub">1. Scan this QR code with your authenticator app (or enter the code manually).</p>
+              <img id="qrImg" style="width:180px; height:180px; border:1px solid var(--rule); border-radius:8px; margin:8px 0;">
+              <p class="mono" id="secretText" style="word-break:break-all; font-size:12px; color:var(--muted);"></p>
+            </div>
+            <div id="setupSent" style="display:none;">
+              <p class="sub" id="setupSentMsg"></p>
+            </div>
+            <div class="field" style="margin-top:10px;">
+              <label id="verifyCodeLabel">Enter the 6-digit code</label>
+              <input type="text" id="verifyCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code">
+            </div>
+            <button class="btn btn-primary" id="verify2faBtn" type="button">Verify &amp; switch</button>
+          </div>
+
+          <!-- Backup codes shown once -->
+          <div id="backupCodes" style="display:none; margin-top:16px; border-top:1px solid var(--rule); padding-top:16px;">
+            <p class="sub"><strong>Save these backup codes.</strong> Each can be used once to sign in if you lose access to your usual code. They will not be shown again.</p>
+            <div class="mono" id="backupCodesList" style="background:#F6F5F1; padding:12px; border-radius:8px; line-height:1.9;"></div>
+          </div>
+        </div>
+
+        <div class="card" id="passkeysCard">
+          <h3 style="margin-bottom:6px;">Face ID / fingerprint sign-in</h3>
+          <p class="sub" style="margin:0 0 14px;">Set up this device to sign in with your fingerprint or face instead of typing your password. You can add each phone or computer you use.</p>
+          <div id="passkeyUnsupported" style="display:none;">
+            <span class="badge badge-idle">Not available on this device or browser</span>
+          </div>
+          <div id="passkeySupported" style="display:none;">
+            <button class="btn btn-primary" id="addPasskeyBtn">Set up on this device</button>
+            <div id="passkeyList" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <div class="card" id="pushCard">
+          <h3 style="margin-bottom:6px;">Notifications on this device</h3>
+          <p class="sub" style="margin:0 0 14px;">Get reminders and attendance alerts as notifications on this phone or computer — even when AOTC Track is closed.</p>
+          <div id="pushUnsupported" style="display:none;">
+            <span class="badge badge-idle">Not available on this device or browser</span>
+          </div>
+          <div id="pushSupported" style="display:none;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn btn-primary" id="enablePushBtn">Turn on notifications</button>
+              <button class="btn btn-secondary" id="testPushBtn" style="display:none;">Send a test</button>
+              <button class="btn btn-secondary" id="disablePushBtn" style="display:none;">Turn off on this device</button>
+            </div>
+            <p class="sub" id="pushStatus" style="margin:10px 0 0;"></p>
+          </div>
+        </div>
+      </div>
+      </div><!-- /securityPanel -->
+
+      <div id="activityWrap" style="display:none;">
+      <div class="section-title" style="margin-top:4px;">
+        <h3 id="activitySectionTitle">Sign-in logs</h3>
+        <div class="basis-toggle" id="accountSubtabs">
+          <button type="button" class="active" data-tab="signins">Sign-in logs</button>
+          <button type="button" data-tab="activity">Account activities</button>
+          <button type="button" data-tab="notifications" id="notifTabBtn" style="display:none;">Notifications</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;" id="signinsPanel">
+        <table>
+          <thead><tr><th id="signinsUserCol" style="display:none;">Staff member</th><th>When</th><th>Result</th><th>IP address</th><th>Device</th></tr></thead>
+          <tbody id="logRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="padding:0; display:none;" id="activityPanel">
+        <table>
+          <thead><tr><th id="activityUserCol" style="display:none;">Staff member</th><th>When</th><th>Action</th><th>Details</th></tr></thead>
+          <tbody id="activityRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="padding:0; display:none;" id="notificationsPanel">
+        <div style="display:flex; justify-content:flex-end; padding:12px 14px 0;">
+          <button type="button" class="btn btn-secondary btn-sm" id="markNotifsReadBtn">Mark all read</button>
+        </div>
+        <table>
+          <thead><tr><th>When</th><th>Source</th><th>Message</th></tr></thead>
+          <tbody id="notificationRows"></tbody>
+        </table>
+      </div>
+      </div><!-- /activityWrap -->
+    </div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+
+  <script src="/js/vendor/simplewebauthn-browser.umd.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/page-account.js"></script>
+<script src="/vendor/glass/glass.js" defer></script>
+</body>
+</html>
