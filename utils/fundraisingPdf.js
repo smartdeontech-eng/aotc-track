@@ -1066,7 +1066,8 @@ function buildDaySummaryPdf({ event, date, rows, entries, denoms }) {
       let x = L;
       cols.forEach(([, w], i) => {
         box(x, y, w, 17, !bd ? '#fdecea' : null);
-        const txt = i === 0 ? pad2(r.no) : i === 1 ? r.label : i === 2 ? svcName(r.service) : (bd ? gh(v[i - 3]) : (i === 9 ? 'NOT ENTERED' : ''));
+        const txt = i === 0 ? pad2(r.no) : i === 1 ? r.label : i === 2 ? svcName(r.service)
+          : (bd ? (bd.formOnly && i < 9 ? '—' : gh(v[i - 3])) : (i === 9 ? 'NOT ENTERED' : ''));
         t(txt, x + 3, y + 5, { s: 7.3, b: i === 9 || i === 0, w: w - 6, a: i >= 3 ? 'right' : 'left', c: !bd && i === 9 ? '#b3261e' : '#000' });
         x += w;
       });

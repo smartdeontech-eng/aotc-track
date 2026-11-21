@@ -26,11 +26,8 @@
           <div class="sub" id="countLabel"></div>
         </div>
         <button class="btn btn-secondary" id="statementBtn">📄 Statement PDF</button>
-        <button class="btn btn-secondary" id="sheetBtn"
-          title="Print the numbered basket sheets for a fundraising day">🖨 Print harvest sheets</button>
-        <button class="btn btn-secondary" id="entryBtn">+ Record fundraising day</button>
-        <button class="btn btn-primary" id="sheetsBtn"
-          title="Type in the basket sheets as they come back from the counting tables">⌨ Enter harvest sheets</button>
+        <button class="btn btn-primary" id="entryBtn"
+          title="Set up the day, print its basket sheets, enter them as they come back, then tally and report">+ Record fundraising day</button>
       </div>
 
       <div class="stat-grid" style="margin-bottom:20px;">
@@ -122,20 +119,50 @@
   <div class="modal-overlay" id="sOverlay" style="display:none;">
     <div class="modal hs-modal">
       <div class="hs-head">
-        <h2 style="margin:0;">Harvest sheets</h2>
+        <h2 style="margin:0;">Record fundraising day</h2>
         <button type="button" class="btn btn-secondary btn-sm" id="sCloseBtn">Close</button>
       </div>
+      <!-- The day: event (with its target), date, services. Everything below belongs to it. -->
       <div class="field-row hs-day">
         <div class="field"><label>Event</label><select id="sEvent"></select></div>
         <div class="field" style="max-width:170px;"><label>Date</label><input type="date" id="sDate"></div>
         <div class="field" style="max-width:190px;"><label>Services</label>
           <select id="sDayType"><option value="joint">Joint service</option><option value="dual">1st and 2nd service</option></select></div>
-        <div class="hs-day-btns">
-          <button type="button" class="btn btn-secondary btn-sm" id="sPrintBtn">🖨 Print sheets</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="sSummaryBtn">📄 Day summary &amp; cash handover</button>
+      </div>
+      <div class="hs-target" id="sTarget"></div>
+      <!-- Shown until the day is set up (as Sunday attendance): nothing else is open before it. -->
+      <div class="hs-setup" id="sSetup" hidden>
+        <h3 style="margin:0 0 4px;">Set up the day</h3>
+        <p class="sub" style="margin:0 0 10px;">Choose how the day runs. The sheets are printed for it, entered against it, and tallied and reported for it.
+          The Harvest Committee's desk team is told when the day is ready.</p>
+        <div class="hs-setup-row">
+          <div class="hs-shape" role="group" aria-label="How the day runs">
+            <button type="button" data-shape="joint">Joint service</button><button type="button" data-shape="dual">1st and 2nd service</button>
+          </div>
+          <div class="field" style="max-width:220px; margin:0;"><label>Target for this day (GHS, optional)</label>
+            <input id="sDayTarget" inputmode="decimal" placeholder="e.g. 250000"></div>
+          <button type="button" class="btn btn-primary" id="sSetupBtn">Set up the day</button>
         </div>
       </div>
+      <div class="hs-steps" role="tablist">
+        <button type="button" class="hs-step" data-step="print" role="tab"><b>1</b> Print sheets</button>
+        <button type="button" class="hs-step" data-step="enter" role="tab"><b>2</b> Enter sheets</button>
+        <button type="button" class="hs-step" data-step="tally" role="tab"><b>3</b> Tally &amp; report</button>
+      </div>
       <div class="hs-progress" id="sProgress"></div>
+
+      <section class="hs-sec" data-sec="print">
+        <p class="sub" style="max-width:720px;">One numbered A4 sheet per basket, with this event, date and service already printed —
+          Gratitude &amp; Thanksgiving is sheet 01. Clip each sheet to its basket. The last page of each service is the tick list
+          for sheets coming back from the counting tables.</p>
+        <div class="hs-day-btns">
+          <button type="button" class="btn btn-primary" id="sPrintBtn">🖨 Print the sheets</button>
+          <button type="button" class="btn btn-secondary" id="sTotalsBtn"
+            title="For a small fundraising day with no sheets: type each basket's total and the money by type">Type totals without sheets</button>
+        </div>
+      </section>
+
+      <section class="hs-sec" data-sec="enter">
       <div class="hs-board" id="sBoard"></div>
 
       <div class="hs-entry" id="sEntry">
@@ -180,12 +207,25 @@
           <button type="button" class="btn btn-primary" id="sSaveBtn" title="Ctrl/⌘ + Enter">Save sheet</button>
         </div>
       </div>
+      </section>
+
+      <section class="hs-sec" data-sec="tally">
+        <div class="hs-kpis" id="sKpis"></div>
+        <div style="overflow-x:auto;"><table class="hs-tally" id="sTally"></table></div>
+        <div class="hs-methods" id="sMethods"></div>
+        <div class="hs-day-btns" style="margin-top:12px;">
+          <button type="button" class="btn btn-secondary" id="sResultsBtn">Results</button>
+          <button type="button" class="btn btn-secondary" id="sAnnounceBtn">📄 Announcement</button>
+          <button type="button" class="btn btn-secondary" id="sSummaryBtn">📄 Day summary &amp; cash handover</button>
+          <span id="sSubmitWrap"></span>
+        </div>
+      </section>
     </div>
   </div>
   <!-- Entry modal -->
   <div class="modal-overlay" id="eOverlay" style="display:none;">
     <div class="modal" style="max-width:1120px; width:96vw; max-height:90vh; overflow:auto;">
-      <h2>Record fundraising day</h2>
+      <h2>Type the day's totals <span class="sub" style="font-weight:500;">(without sheets)</span></h2>
       <!-- Shown when typing from a previous sitting was recovered — see the
            draft block in page-fundraising.js. -->
       <div id="eDraftNote" class="note note-warn" style="display:none; margin:0 0 12px; padding:10px 12px;

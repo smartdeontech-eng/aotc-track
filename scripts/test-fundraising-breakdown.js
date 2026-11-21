@@ -271,7 +271,7 @@ const server = app.listen(0, async () => {
     const D3 = `${year}-11-22`;
     const clash = await call('PUT', '/fundraising/entries/basket',
       { eventId: evId, date: D2, service: '1st', key: 'gratitude', breakdown: { cash: 5 } });
-    ok(clash.status === 400 && /joint entry/.test((clash.json || {}).error || ''),
+    ok(clash.status === 400 && /joint (entry|service)/.test((clash.json || {}).error || ''),
       'a 1st-service basket on a joint day is refused');
     // A basket save on a day in the pipeline is locked out for non-admins; this
     // user is a localadmin, so it is allowed — assert it is at least not a 500.

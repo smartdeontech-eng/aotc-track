@@ -16,6 +16,7 @@ const { notifyUser } = require('../utils/approvalNotify');
 const { buildAnnouncementPdf, buildStatementPdf, buildCountingSheetPdf, buildBasketSheetsPdf, buildDaySummaryPdf } = require('../utils/fundraisingPdf');
 const fs = require('fs');
 const path = require('path');
+const push = require('../utils/push');
 
 const DAYBORN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -317,6 +318,7 @@ router.get('/overview', requireAuth, (req, res) => {
   });
   res.json({
     year, events: perEvent, entries, expenses, ious,
+    days: db.findAll('fundraising_days', d => d.year === year),
     annualTarget: meta.annualTarget,
     seedCategories: seedCats(year),
     activityCategories: activityCats(year),
@@ -569,7 +571,11 @@ function buildEntry(ev, body, existing, req, opts = {}) {
 
 // Guards shared by both ways in.
 function dayShapeError(ev, date, service) {
-  // A fundraising day is EITHER joint OR dual (1st+2nd) — never both.
+  // A fundraising day is EITHER joint OR dual (1st+2nd) — never both. Once the
+  // day is set up (fundraising_days), its shape decides.
+  const rec = dayRecord(ev.id, date);
+  if (rec && rec.shape === 'joint' && service !== 'joint') return 'This day is set up as a joint service. Change it to 1st and 2nd service first (Record fundraising day → Services).';
+  if (rec && rec.shape === 'dual' && service === 'joint') return 'This day is set up as 1st and 2nd service. Change it to a joint service first (Record fundraising day → Services).';
   const sameDay = db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date);
   if (service === 'joint' && sameDay.some(e => e.service !== 'joint')) {
     return 'This date already has 1st/2nd service entries. Delete them first if the day was actually joint.';
@@ -623,6 +629,7 @@ router.put('/entries', ...manage, (req, res) => {
   const built = buildEntry(ev, req.body, existing, req, { enforceRecon: true });
   if (built.error) return res.status(400).json({ error: built.error });
   const rec = persistEntry(ev, built, existing);
+  ensureDay(ev, date, service, req);
   logActivity({ ...built.who, action: 'Recorded fundraising inflows', entityType: 'fundraising', entityId: rec.id, entityLabel: `${ev.name} ${date} ${built.payload.service} — GHS ${built.total.toLocaleString()}` });
   res.json(rec);
 });
@@ -702,6 +709,7 @@ router.put('/entries/basket', ...manage, (req, res) => {
   const built = buildEntry(ev, body, existing, req, { enforceRecon: false });
   if (built.error) return res.status(400).json({ error: built.error });
   const rec = persistEntry(ev, built, existing);
+  ensureDay(ev, date, service, req);
 
   // ---- What to say about it ----
   const saved = (rec.catMethods || {})[key];
@@ -763,10 +771,80 @@ router.put('/entries/basket', ...manage, (req, res) => {
 // came from); the entry desk picks the body.
 const SHEET_PHOTO_DIR = path.join(db.DATA_DIR, 'fundraising-sheets');
 
+// ---- The fundraising day (19 Nov 2026) ------------------------------------------
+// As Sunday attendance does: the day is SET UP first — event, date, joint or
+// 1st and 2nd service, and (if it has one) a target for the day — and
+// everything follows from it: the sheets are printed for it, entered against
+// it, tallied and reported for it. A day that already has figures from before
+// this (no record) counts as set up, in the shape its figures have.
+function dayRecord(eventId, date) {
+  return db.findOne('fundraising_days', d => d.eventId === Number(eventId) && d.date === date) || null;
+}
+function daySetUp(ev, date) {
+  return !!dayRecord(ev.id, date) || db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date).length > 0;
+}
+// Figures typed in the totals form for a day nobody set up: the day is set up by
+// the save, in the shape of the service saved (so it lists, prints and tallies
+// like any other day).
+function ensureDay(ev, date, service, req) {
+  if (dayRecord(ev.id, date)) return;
+  const who = actor(req);
+  db.insert('fundraising_days', { eventId: ev.id, eventName: ev.name, year: ev.year, date, shape: service === 'joint' ? 'joint' : 'dual',
+    target: null, status: 'open', setBy: who.userName, setById: who.userId, setAt: new Date().toISOString(), via: 'totals form' });
+}
+const NOT_SET_UP = 'Set up the day first: Record fundraising day → choose the event, date and services → Set up the day.';
+
+router.post('/days', ...manage, (req, res) => {
+  const ev = db.findById('fundraising_events', Number(req.body.eventId));
+  const date = String(req.body.date || '').slice(0, 10);
+  const shape = req.body.shape;
+  if (!ev || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !['joint', 'dual'].includes(shape)) return res.status(400).json({ error: 'Event, date and services (joint, or 1st and 2nd) are required.' });
+  const entries = db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date);
+  if (entries.some(e => e.status && e.status !== 'pending') && req.user.role !== 'admin') return res.status(423).json({ error: 'This day has been signed off and is locked.' });
+  // Changing the shape after figures exist for the other shape would orphan them.
+  const hasFigures = e => (e.total || 0) > 0 || Object.keys(e.sheets || {}).length > 0;
+  if (shape === 'joint' && entries.some(e => e.service !== 'joint' && hasFigures(e))) return res.status(400).json({ error: 'This day already has 1st/2nd service figures. Delete them first if the day was actually joint.' });
+  if (shape === 'dual' && entries.some(e => e.service === 'joint' && hasFigures(e))) return res.status(400).json({ error: 'This day already has joint-service figures. Delete them first if the day actually had two services.' });
+  const who = actor(req);
+  const existing = dayRecord(ev.id, date);
+  const target = req.body.target === '' || req.body.target == null ? (existing ? existing.target || null : null) : (n(req.body.target) || null);
+  const payload = { eventId: ev.id, eventName: ev.name, year: ev.year, date, shape, target, setBy: who.userName, setById: who.userId, setAt: new Date().toISOString() };
+  const rec = existing ? db.update('fundraising_days', existing.id, payload) : db.insert('fundraising_days', { ...payload, status: 'open' });
+  // Empty entries of the other shape (a photo-only start) go with the change.
+  entries.filter(e => !hasFigures(e) && (shape === 'joint' ? e.service !== 'joint' : e.service === 'joint')).forEach(e => db.remove('fundraising_entries', e.id));
+  logActivity({ ...who, action: existing ? 'Changed fundraising day' : 'Set up fundraising day', entityType: 'fundraising', entityId: rec.id,
+    entityLabel: `${ev.name} ${date} (${shape === 'dual' ? '1st and 2nd service' : 'joint service'})${target ? ` — day target GHS ${target}` : ''}` });
+  // The desk team: the day is ready for its sheets.
+  try {
+    const team = push.userIdsWithPermission('fundraising.manage').filter(id => id !== req.user.id);
+    push.sendPushToUsers(team, {
+      title: `${ev.name}: day set up`,
+      body: `${date} — ${shape === 'dual' ? '1st and 2nd service' : 'joint service'}. Sheets can be printed and entered.`,
+      url: '/fundraising.html', tag: `fr-day-${ev.id}-${date}`,
+    }).catch(() => {});
+  } catch (e) { /* notifications are best effort */ }
+  res.json(rec);
+});
+// A day set up by mistake, with nothing recorded against it.
+router.delete('/days', ...manage, (req, res) => {
+  const ev = db.findById('fundraising_events', Number(req.query.eventId));
+  const date = String(req.query.date || '').slice(0, 10);
+  const rec = ev && dayRecord(ev.id, date);
+  if (!rec) return res.status(404).json({ error: 'That day is not set up.' });
+  const entries = db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date);
+  if (entries.some(e => (e.total || 0) > 0 || Object.keys(e.sheets || {}).length)) return res.status(400).json({ error: 'This day has figures or sheets. Delete those first.' });
+  entries.forEach(e => db.remove('fundraising_entries', e.id));
+  db.remove('fundraising_days', rec.id);
+  logActivity({ ...actor(req), action: 'Removed fundraising day', entityType: 'fundraising', entityId: rec.id, entityLabel: `${ev.name} ${date}` });
+  res.json({ ok: true });
+});
+
 function sheetBaskets(year) {
+  // Gratitude & Thanksgiving comes first in the service, so it is sheet 01
+  // (Harvest Committee, 19 Nov 2026); then the day-borns, Chairpersons, Seed.
   return [
-    ...DAYBORN.map(d => ({ key: 'dayborn.' + d, label: d + '-borns' })),
     { key: 'gratitude', label: 'Gratitude & Thanksgiving' },
+    ...DAYBORN.map(d => ({ key: 'dayborn.' + d, label: d + '-borns' })),
     { key: 'chairpersons', label: 'Chairpersons & Co-chairpersons' },
     { key: 'seed', label: 'Seed contributions' },
     ...activityCats(year).map(a => ({ key: 'activity.' + a, label: 'Harvest Week — ' + a })),
@@ -775,6 +853,8 @@ function sheetBaskets(year) {
 // The services of a day: what is already recorded decides; otherwise the
 // caller says (`dual` = 1st and 2nd).
 function dayServices(ev, date, hint) {
+  const rec = dayRecord(ev.id, date);
+  if (rec) return rec.shape === 'dual' ? ['1st', '2nd'] : ['joint'];
   const have = [...new Set(db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date).map(e => e.service))];
   if (have.includes('joint')) return ['joint'];
   if (have.length) return ['1st', '2nd'];
@@ -799,10 +879,24 @@ function sheetEntryKey(p, body, year) {
 function sheetsOf(ev, date) {
   return db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date);
 }
-// Which sheet (by number) a stored record belongs to.
-function findSheetRecord(entries, no) {
-  for (const e of entries) for (const [key, s] of Object.entries(e.sheets || {})) if (Number(s.no) === Number(no)) return { entry: e, key, sheet: s };
-  return null;
+// What is recorded for one planned sheet: found by BASKET (not by the number
+// stored with it), so renumbering the sheets never loses a record, and figures
+// typed in the totals form (no sheet) still show on the board. A seed sheet is
+// whichever seed.<body> holds the sheet record, else the first body with money.
+function recordFor(e, p) {
+  if (!e) return null;
+  const sheets = e.sheets || {}, cm = e.catMethods || {}, cats = e.categories || {};
+  let keys;
+  if (p.key === 'seed') {
+    keys = [...new Set([...Object.keys(sheets), ...Object.keys(cm), ...Object.keys(cats.seed || {}).map(b => 'seed.' + b)])]
+      .filter(k => k === 'seed' || k.startsWith('seed.'));
+  } else keys = [p.key];
+  const amt = k => (k === 'seed' ? 0 : catAmountOf(cats, k) || 0);
+  const key = keys.find(k => sheets[k] && cm[k]) || keys.find(k => sheets[k]) || keys.find(k => cm[k]) || keys.find(k => amt(k) > 0);
+  if (!key) return null;
+  return { entry: e, key, sheet: sheets[key] || null, bd: cm[key] || null, amount: amt(key),
+    // all the money on this sheet's basket (every seed body for the seed sheet)
+    basketTotal: r2(keys.reduce((t, k) => t + amt(k), 0)) };
 }
 
 router.get('/sheets', requireAuth, (req, res) => {
@@ -813,15 +907,19 @@ router.get('/sheets', requireAuth, (req, res) => {
   const { services, plan } = sheetPlan(ev, date, req.query.services);
   const entries = sheetsOf(ev, date);
   const rows = plan.map(p => {
-    const hit = findSheetRecord(entries.filter(e => e.service === p.service), p.no);
+    const hit = recordFor(entries.find(e => e.service === p.service), p);
     if (!hit) return { ...p, status: 'missing' };
-    const s = hit.sheet;
-    const bd = (hit.entry.catMethods || {})[hit.key];
-    if (!bd) return { ...p, status: s.photoId ? 'photo' : 'missing', photoId: s.photoId || null, entryKey: hit.key };
+    const s = hit.sheet || {};
+    const bd = hit.bd;
+    if (!bd && !(hit.basketTotal > 0)) return { ...p, status: s.photoId ? 'photo' : 'missing', photoId: s.photoId || null, entryKey: hit.key };
+    const seedMany = p.key === 'seed' && Math.abs(hit.basketTotal - (bd ? bd.total : hit.amount)) > 0.005;
     return {
-      ...p, status: 'entered', entryKey: hit.key, label: hit.key.startsWith('seed.') ? catLabel(hit.key) : p.label,
-      total: r2(bd.total), cash: r2(bd.cash), momo: r2(bd.momo), cheque: r2(bd.chequeTotal), transfer: r2(bd.transferTotal),
-      forex: r2(bd.forexGhs), ious: r2(bd.iouTotal), enteredBy: s.enteredBy, at: s.at, photoId: s.photoId || null,
+      ...p, status: 'entered', entryKey: hit.key, source: s.enteredBy ? 'sheet' : 'form',
+      label: seedMany ? 'Seed (several bodies)' : hit.key.startsWith('seed.') ? catLabel(hit.key) : p.label,
+      total: p.key === 'seed' ? hit.basketTotal : r2(bd ? bd.total : hit.amount),
+      cash: bd ? r2(bd.cash) : null, momo: bd ? r2(bd.momo) : null, cheque: bd ? r2(bd.chequeTotal) : null,
+      transfer: bd ? r2(bd.transferTotal) : null, forex: bd ? r2(bd.forexGhs) : null, ious: bd ? r2(bd.iouTotal) : null,
+      enteredBy: s.enteredBy || hit.entry.enteredBy || null, at: s.at || null, photoId: s.photoId || null,
       corrected: !!s.corrected,
     };
   });
@@ -830,8 +928,19 @@ router.get('/sheets', requireAuth, (req, res) => {
   entries.forEach(e => Object.entries(e.cashCount || {}).forEach(([k, q]) => { cashCount[k] = (cashCount[k] || 0) + q; }));
   const dayTotal = r2(entries.reduce((s, e) => s + (e.total || 0), 0));
   const status = entries.length ? dayStatusOf(entries) : 'pending';
+  // The tally: the day by payment type, and the event against its target.
+  const sumOf = f => r2(entries.reduce((t, e) => t + (Number(f(e)) || 0), 0));
+  const methods = {
+    cash: sumOf(e => (e.methods || {}).cash), momo: sumOf(e => (e.methods || {}).momo),
+    cheque: sumOf(e => (e.methods || {}).cheque), transfer: sumOf(e => (e.methods || {}).transfer),
+    forex: sumOf(e => e.forexGhs), ious: sumOf(e => e.iouTotal),
+  };
+  const raised = r2(db.findAll('fundraising_entries', e => e.eventId === ev.id).reduce((t, e) => t + (e.total || 0), 0));
+  const rec = dayRecord(ev.id, date);
   res.json({
-    event: { id: ev.id, name: ev.name, year: ev.year }, date, services, rows,
+    day: rec ? { id: rec.id, shape: rec.shape, target: rec.target || null, setBy: rec.setBy, setAt: rec.setAt } : null,
+    setUp: !!rec || entries.length > 0,
+    event: { id: ev.id, name: ev.name, year: ev.year, target: ev.target || null, raised }, date, services, rows, methods,
     seedCategories: seedCats(ev.year), denominations: DENOMS,
     entered: rows.filter(r => r.status === 'entered').length, total: rows.length,
     dayTotal, cashCount, cashCounted: cashCountTotal(cashCount), status,
@@ -856,8 +965,8 @@ router.get('/sheets/:no', requireAuth, (req, res) => {
   const p = plan.find(x => x.no === no);
   if (!p) return res.status(404).json({ error: `Sheet ${no} is not one of this day's sheets (01 to ${String(plan.length).padStart(2, '0')}).` });
   const e = db.findOne('fundraising_entries', x => x.eventId === ev.id && x.date === date && x.service === p.service);
-  const hit = e ? findSheetRecord([e], no) : null;
-  const bd = hit && (e.catMethods || {})[hit.key];
+  const hit = recordFor(e, p);
+  const bd = hit && hit.bd;
   res.json({
     ...p, seedCategories: seedCats(ev.year), rates: normRates([...((e && e.rates) || [])]),
     entryKey: hit ? hit.key : null, entered: !!bd, sheet: hit ? hit.sheet : null,
@@ -878,6 +987,7 @@ router.put('/sheets/:no', ...manage, (req, res) => {
   const ev = db.findById('fundraising_events', Number(req.body.eventId));
   const date = String(req.body.date || '').slice(0, 10);
   if (!ev || !date) return res.status(400).json({ error: 'Event and date are required.' });
+  if (!daySetUp(ev, date)) return res.status(400).json({ error: NOT_SET_UP });
   const no = Number(req.params.no);
   const { plan } = sheetPlan(ev, date, req.body.services);
   const p = plan.find(x => x.no === no);
@@ -891,9 +1001,10 @@ router.put('/sheets/:no', ...manage, (req, res) => {
   const existing = db.findOne('fundraising_entries', e => e.eventId === ev.id && e.date === date && e.service === service);
   const locked = lockedError(existing, req);
   if (locked) return res.status(423).json({ error: locked });
-  const already = findSheetRecord(existing ? [existing] : [], no);
-  if (already && (existing.catMethods || {})[already.key] && !req.body.replace) {
-    return res.status(409).json({ error: `Sheet ${String(no).padStart(2, '0')} was already entered by ${already.sheet.enteredBy || 'someone'}. Open it to change it.`, already: { by: already.sheet.enteredBy, at: already.sheet.at } });
+  const already = recordFor(existing, p);
+  if (already && (already.bd || already.amount > 0) && !req.body.replace) {
+    const by = (already.sheet && already.sheet.enteredBy) || existing.enteredBy || 'someone';
+    return res.status(409).json({ error: `Sheet ${String(no).padStart(2, '0')} (${p.label}) was already entered by ${by}${already.sheet && already.sheet.enteredBy ? '' : ' in the totals form'}. Open it to change it.`, already: { by, at: already.sheet && already.sheet.at } });
   }
   // A seed sheet re-entered under another body must not leave the old one counted.
   const staleKey = already && already.key !== key ? already.key : null;
@@ -968,7 +1079,7 @@ router.put('/sheets/:no', ...manage, (req, res) => {
   const who = built.who;
   const sheets = { ...(prev.sheets || {}) };
   if (staleKey) delete sheets[staleKey];
-  const old = sheets[key] || (already ? already.sheet : {});
+  const old = sheets[key] || (already && already.sheet) || {};
   sheets[key] = {
     no, enteredBy: who.userName, enteredById: who.userId, at: new Date().toISOString(),
     writtenCash, writtenTotal, corrected, note: corrected ? note : '', momo: momoRows,
@@ -989,6 +1100,7 @@ router.post('/sheets/:no/photo', ...manage, (req, res) => {
   const ev = db.findById('fundraising_events', Number(req.body.eventId));
   const date = String(req.body.date || '').slice(0, 10);
   if (!ev || !date) return res.status(400).json({ error: 'Event and date are required.' });
+  if (!daySetUp(ev, date)) return res.status(400).json({ error: NOT_SET_UP });
   const no = Number(req.params.no);
   const { plan } = sheetPlan(ev, date, req.body.services);
   const p = plan.find(x => x.no === no);
@@ -1007,8 +1119,8 @@ router.post('/sheets/:no/photo', ...manage, (req, res) => {
   const locked = lockedError(existing, req);
   if (locked) return res.status(423).json({ error: locked });
   const sheets = { ...((existing && existing.sheets) || {}) };
-  const hit = findSheetRecord(existing ? [existing] : [], no);
-  const key = hit ? hit.key : (p.key === 'seed' ? 'seed' : p.key);
+  const hit = recordFor(existing, p);
+  const key = hit ? hit.key : p.key;
   sheets[key] = { ...(sheets[key] || { no }), no, photoId, photoBy: who.userName, photoAt: new Date().toISOString() };
   if (existing) db.update('fundraising_entries', existing.id, { sheets });
   else {
@@ -1042,6 +1154,7 @@ router.get('/basket-sheets.pdf', requireAuth, async (req, res) => {
   const ev = db.findById('fundraising_events', Number(req.query.eventId));
   const date = String(req.query.date || '').slice(0, 10);
   if (!ev || !date) return res.status(400).json({ error: 'Choose the event and the date first.' });
+  if (!daySetUp(ev, date)) return res.status(400).json({ error: NOT_SET_UP });
   const { services, plan } = sheetPlan(ev, date, req.query.services);
   const buf = await buildBasketSheetsPdf({ event: ev, date, services, plan, denoms: DENOMS });
   logActivity({ ...actor(req), action: 'Printed harvest basket sheets', entityType: 'fundraising', entityId: ev.id, entityLabel: `${ev.name} ${date} (${services.join(' + ')}, ${plan.length} sheets)` });
@@ -1061,9 +1174,11 @@ router.get('/day-summary.pdf', requireAuth, async (req, res) => {
   const { plan } = sheetPlan(ev, date, req.query.services);
   const rows = plan.map(p => {
     const e = entries.find(x => x.service === p.service);
-    const hit = e ? findSheetRecord([e], p.no) : null;
-    const bd = hit && (e.catMethods || {})[hit.key];
-    return { ...p, label: hit && hit.key.startsWith('seed.') ? catLabel(hit.key) : p.label, bd: bd || null, sheet: hit ? hit.sheet : null };
+    const hit = recordFor(e, p);
+    const bd = hit && hit.bd;
+    const formOnly = !!hit && !bd && hit.basketTotal > 0;
+    return { ...p, label: hit && hit.key.startsWith('seed.') ? catLabel(hit.key) : p.label,
+      bd: bd || (formOnly ? { total: hit.basketTotal, formOnly: true } : null), sheet: hit ? hit.sheet : null };
   });
   const buf = await buildDaySummaryPdf({ event: ev, date, rows, entries, denoms: DENOMS });
   logActivity({ ...actor(req), action: 'Printed harvest day summary', entityType: 'fundraising', entityId: ev.id, entityLabel: `${ev.name} ${date}` });

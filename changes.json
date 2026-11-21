@@ -1,5 +1,13 @@
 [
   [
+    "0.4.31",
+    "Harvest: a fundraising day is set up first, as a Sunday is for attendance. In Record fundraising day choose the event and the date, then Set up the day — joint or 1st and 2nd service, and a target for the day if it has one. The desk team is told; the sheets are then printed, entered, tallied and reported for that day, and the tally shows the day against its own target and the event against its target. A set-up day is listed straight away, before anything is entered; one set up by mistake can be removed while nothing is on it. Nothing can be printed or entered for a day that is not set up."
+  ],
+  [
+    "0.4.30",
+    "Harvest: Record fundraising day and the harvest sheets are now one window. Set up the day — the event (or a new one) with its target, the date, the services — then 1 Print the sheets, 2 Enter them as they come back, 3 Tally & report: the day by basket and service, by payment type, against the event's target, with Results, the Announcement, the day summary and cash handover, and Submit. Gratitude & Thanksgiving is now sheet 01. Totals typed without sheets (for a small day) show on the sheets board too, and a sheet cannot overwrite them by accident."
+  ],
+  [
     "0.4.29",
     "Harvest sheets: AOTC Track prints one numbered sheet per basket for the fundraising day (event, date, service and basket already on it, PCG crest, the denominations, and lists for MoMo, cheques, transfers, foreign notes and pledges), plus a tick list of sheets. At the entry desk (Fundraising → ⌨ Enter harvest sheets) type the sheet number and the basket fills itself in; type the pieces and lists and the totals written on the sheet — a sheet that does not agree with what is written on it is not saved. Several people can enter sheets at once while counting goes on; a board shows every sheet of the day. A photo of a sheet can be sent from the counting table. When the last sheet is in: the day summary and the cash handover (cash by note and coin, every cheque) to sign, and Submit. The whole-day form can no longer overwrite figures saved at another desk."
   ],

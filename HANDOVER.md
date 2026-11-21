@@ -27,7 +27,7 @@ command** — not at the end of the session, which may never come. Each update:
 3. adds anything that bit to **§8**.
 
 Small fixes with no behaviour change (a typo, a comment) do not need an entry.
-Last updated: **18 Nov 2026** (0.4.29: harvest basket sheets — deployed, blue live; fresh git history pushed to GitHub smartdeontech-eng/aotc-track). Before that, 3 Nov 2026, 09:45 UTC (0.4.0: update bar, About with What's new, numbered releases — built, not deployed; before that: Pulse sign-ins reporter, tray deployed; blue live; SQLite + blue-green working). Commits from 10–24 Oct by other sessions are not summarised here; see `git log`.
+Last updated: **19 Nov 2026, evening** (0.4.31: the day is set up first — built, not deployed; 0.4.30 deployed). Before that, 18 Nov 2026 (0.4.29: harvest basket sheets — deployed, blue live; fresh git history pushed to GitHub smartdeontech-eng/aotc-track). Before that, 3 Nov 2026, 09:45 UTC (0.4.0: update bar, About with What's new, numbered releases — built, not deployed; before that: Pulse sign-ins reporter, tray deployed; blue live; SQLite + blue-green working). Commits from 10–24 Oct by other sessions are not summarised here; see `git log`.
 
 ---
 
@@ -227,6 +227,48 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Session minutes: tidy-up, decisions, matters, chairman signs | `claude/session-minutes-oct-2026.md` |
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
+
+### Built 19 Nov 2026 — 0.4.31: the fundraising day is set up first (as Sunday attendance)
+
+Owner, 19 Nov 2026 evening: "set up the day for the main harvest or whatever item, then everything follows."
+- New collection **`fundraising_days`** `{eventId, eventName, year, date, shape: joint|dual, target, status, setBy,
+  setAt, via?}`. `POST /api/fundraising/days` sets it up or changes it (shape change refused once figures of
+  the other shape exist; empty photo-only entries of the other shape are removed; push to fundraising.manage
+  users); `DELETE /api/fundraising/days` removes a day with nothing on it.
+- `dayServices()` and `dayShapeError()` follow the record first. Sheets cannot be printed, entered or
+  photographed until the day is set up (`daySetUp()`: a record, or figures from before this release).
+  Totals typed in the totals form or "Save this basket" for a day nobody set up set it up (`ensureDay`,
+  `via: 'totals form'`).
+- `GET /sheets` returns `day` and `setUp`; `/overview` returns `days`, and the inflows list shows a set-up
+  day with nothing entered ("set up — nothing entered yet", Open).
+- Day window: until set up, only the "Set up the day" panel (joint / 1st and 2nd, optional day target);
+  then the day line (who set it up, the day's target and % so far, change, remove this day) and the three
+  steps. Changing Services on a set-up day asks first. Tally shows the day target and the event target.
+- Tests: test-fundraising-sheets 62/62 (set-up gating, shape change, remove, totals form sets up);
+  breakdown 99 (one message check widened: the refusal now names the set-up day), roles 31, pdf-layout 49,
+  entry-dom 69. Browser check (Chrome 1280): set-up panel, set up, print step, tally.
+
+### Built 19 Nov 2026 — 0.4.30: Record fundraising day and the harvest sheets are one window
+
+Owner, 19 Nov 2026: the day and its sheets are one thing — set up the day with its target, print the
+sheets, enter them, tally, report.
+- **One button**, "+ Record fundraising day" (#entryBtn), opens the day window (`#sOverlay`,
+  `page-fundraising-sheets.js`): event (with "＋ New event…", POST /events) and its target ("change
+  target", PUT /events/:id), date, services; then three steps: **1 Print sheets** (+ "Type totals without
+  sheets" → `openTotalsForm()`, the old form, now titled "Type the day's totals (without sheets)"),
+  **2 Enter sheets** (board + entry, as 0.4.29), **3 Tally & report** (day total, sheets entered, event
+  raised vs target, one line per basket with a column per service, by payment type; Results, Announcement,
+  Day summary & cash handover, Submit). The window opens on the step the day is at.
+- Inflow rows: "Sheets" → **Open**; "Edit" → **Edit totals**. The header's separate Print / Enter buttons
+  are gone.
+- **Gratitude & Thanksgiving is sheet 01** (then Sun–Sat-borns, Chairpersons, Seed, activities).
+- Sheets are now matched to records by **basket** (`recordFor(entry, plan)`), not by the number stored with
+  them, so renumbering loses nothing; a basket typed in the totals form shows on the board as entered
+  (`source: 'form'`) and a sheet does not overwrite it without "replace" (409 names the totals form).
+- `GET /sheets` also returns `event.target`, `event.raised` and `methods` (cash, momo, cheque, transfer,
+  forex, ious) for the tally.
+- Tests: test-fundraising-sheets 50/50 (new numbering, tally, form-typed basket); breakdown 99, roles 31,
+  pdf-layout 49, entry-dom 69. Browser check (Chrome 1280): the three steps.
 
 ### Built 17 Nov 2026 — 0.4.29: harvest basket sheets (paper first, typed at the desk)
 
@@ -778,6 +820,18 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 ---
 
 ## 9. Outstanding
+
+### 0.4.31 the day is set up first — built, not deployed (19 Nov 2026)
+
+0.4.30 was released 19 Nov from the phone (files uploaded to ~/aotc-staging, release.sh run) and checked
+live (healthz 0.4.30, blue). Release 0.4.31 with the usual order. Check: Record fundraising day on a new
+date shows only "Set up the day"; after it, the day appears in the inflows list.
+
+### 0.4.30 Record fundraising day = harvest sheets — deployed 19 Nov 2026 (from the phone; healthz 0.4.30 on blue)
+
+Release with the usual order (check-version, commit, push, deploy/push.sh). Check on the live site:
+"+ Record fundraising day" opens the day window; sheet 01 is Gratitude & Thanksgiving; Tally & report shows
+the event's target.
 
 ### 0.4.29 harvest basket sheets — deployed 18 Nov 2026 (blue live)
 

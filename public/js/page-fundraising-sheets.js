@@ -1,3 +1,10 @@
+// The day is SET UP first, as Sunday attendance is (19 Nov 2026, evening): event,
+// date, joint or 1st and 2nd service, optional day target → "Set up the day".
+// Until then only the set-up panel shows; after it, the three steps.
+// Record fundraising day — one window for the whole day (19 Nov 2026: the day
+// and its sheets are one thing). Set up the day (event and its target, date,
+// services), 1 print the sheets, 2 enter them as they come back, 3 tally and
+// report. The totals form (no sheets) is still there for small days.
 // Harvest basket sheets — the entry desk (17 Nov 2026).
 // The counting team fills in one printed, numbered sheet per basket; the desk
 // types each sheet in as it arrives, several people at once, while counting
@@ -9,7 +16,7 @@
 // canManage, load, todayInputValue.
 (function () {
   const $ = id => document.getElementById(id);
-  const S = { board: null, sheet: null, photoId: null, busy: false };
+  const S = { board: null, sheet: null, photoId: null, busy: false, step: null };
   const LISTS = {
     momo: [['name', 'Name or number', 160], ['reference', 'Transaction ID', 130], ['amount', 'Amount', 100, true]],
     cheques: [['number', 'Cheque no.', 110], ['bank', 'Bank', 140], ['amount', 'Amount', 100, true]],
@@ -28,14 +35,65 @@
   // ---- Opening ---------------------------------------------------------------
   function open(eventId, date) {
     if (!data || !data.events.length) return toast('Add the fundraising event first (Events, above).', true);
-    $('sEvent').innerHTML = data.events.map(ev => `<option value="${ev.id}">${esc(ev.name)}</option>`).join('');
-    if (eventId) $('sEvent').value = String(eventId);
+    fillEvents(eventId);
     $('sDate').value = date || todayInputValue();
     const list = data.entries.filter(e => e.eventId === Number($('sEvent').value) && e.date === $('sDate').value);
     $('sDayType').value = list.some(e => e.service !== 'joint') ? 'dual' : (list.length ? 'joint' : $('sDayType').value || 'joint');
     $('sOverlay').style.display = 'flex';
+    S.step = null;
     renderCash(); resetLists(); clearForm();
-    refresh().then(() => { restoreDraft(); $('sNo').focus(); });
+    refresh().then(() => { restoreDraft(); if (S.step === 'enter') $('sNo').focus(); });
+  }
+  function fillEvents(selectId) {
+    $('sEvent').innerHTML = data.events.map(ev => `<option value="${ev.id}">${esc(ev.name)}</option>`).join('')
+      + (canManage() ? '<option value="new">＋ New event…</option>' : '');
+    if (selectId) $('sEvent').value = String(selectId);
+    S.lastEvent = $('sEvent').value;
+  }
+  async function newEvent() {
+    const name = (prompt('Name of the fundraising event (e.g. Main Harvest):') || '').trim();
+    if (!name) { $('sEvent').value = S.lastEvent || ''; return false; }
+    const t = prompt(`Target for ${name} in GHS (leave empty for none):`, '');
+    try {
+      const ev = await api('/fundraising/events', { method: 'POST', body: { name, target: t ? num(t) : null, year: data.year } });
+      await load(); fillEvents(ev.id); toast(`${name} added`); return true;
+    } catch (e) { toast(e.message, true); $('sEvent').value = S.lastEvent || ''; return false; }
+  }
+  async function editTarget() {
+    const ev = S.board && S.board.event; if (!ev) return;
+    const t = prompt(`Target for ${ev.name} in GHS:`, ev.target || '');
+    if (t === null) return;
+    try { await api(`/fundraising/events/${ev.id}`, { method: 'PUT', body: { target: t ? num(t) : null } }); toast('Target saved'); await load(); refresh(); }
+    catch (e) { toast(e.message, true); }
+  }
+  async function setUpDay(shape, target) {
+    const d = day();
+    try {
+      await api('/fundraising/days', { method: 'POST', body: { eventId: d.eventId, date: d.date, shape, target } });
+      toast('Day set up. The desk team has been told.');
+      S.step = null; await load(); await refresh();
+    } catch (e) { toast(e.message, true); await refresh(); }
+  }
+  async function editDayTarget() {
+    const b = S.board; if (!b || !b.day) return;
+    const t = prompt('Target for this day in GHS (leave empty for none):', b.day.target || '');
+    if (t === null) return;
+    const d = day();
+    try { await api('/fundraising/days', { method: 'POST', body: { eventId: d.eventId, date: d.date, shape: b.day.shape, target: t ? num(t) : 0 } }); toast('Day target saved'); refresh(); }
+    catch (e) { toast(e.message, true); }
+  }
+  async function removeDay() {
+    const d = day();
+    if (!confirm('Remove this day? Nothing has been entered for it.')) return;
+    try { await api(`/fundraising/days?eventId=${d.eventId}&date=${d.date}`, { method: 'DELETE' }); toast('Day removed'); S.step = null; await load(); refresh(); }
+    catch (e) { toast(e.message, true); }
+  }
+  function showStep(step) {
+    S.step = step;
+    document.querySelectorAll('.hs-step').forEach(b => { b.classList.toggle('on', b.dataset.step === step); b.setAttribute('aria-selected', b.dataset.step === step); });
+    document.querySelectorAll('.hs-sec').forEach(sec => { sec.hidden = sec.dataset.sec !== step; });
+    if (step === 'tally') renderTally();
+    if (step === 'enter') setTimeout(() => $('sNo').focus(), 30);
   }
   async function refresh() {
     const d = day();
@@ -43,15 +101,42 @@
     try { S.board = await api('/fundraising/sheets?' + q()); }
     catch (e) { S.board = null; $('sBoard').innerHTML = ''; $('sProgress').textContent = e.message; return; }
     const b = S.board;
-    // What is already recorded decides joint or two services; the box follows it.
+    // Set up or not: before it, only the set-up panel.
+    const setUp = b.setUp;
+    $('sSetup').hidden = setUp;
+    document.querySelector('.hs-steps').hidden = !setUp;
+    $('sProgress').hidden = !setUp;
+    if (!setUp) {
+      document.querySelectorAll('.hs-sec').forEach(sec => { sec.hidden = true; });
+      $('sDayType').closest('.field').hidden = true;
+      const shape = $('sDayType').value || 'joint';
+      document.querySelectorAll('#sSetup [data-shape]').forEach(x => x.classList.toggle('on', x.dataset.shape === shape));
+      $('sSetupBtn').hidden = !canManage();
+      if (!canManage()) $('sSetup').querySelector('p').textContent = 'This day has not been set up yet. Ask the Harvest Committee to set it up.';
+    } else $('sDayType').closest('.field').hidden = false;
+    // The day decides joint or two services; the box shows it.
     $('sDayType').value = b.services.length > 1 ? 'dual' : 'joint';
-    $('sDayType').disabled = b.rows.some(r => r.status !== 'missing');
+    $('sDayType').disabled = !canManage() || b.rows.some(r => r.status !== 'missing') || !!b.locked;
     const done = b.entered === b.total;
     $('sProgress').innerHTML = `<b>${b.entered} of ${b.total}</b> sheets entered · day total <b class="mono">GHS ${gh(b.dayTotal)}</b>`
       + (b.locked ? ' · <span class="badge badge-info">signed off — locked</span>' : '')
       + (done && !b.locked ? ' · <span class="badge badge-done">every sheet is in</span> <button type="button" class="btn btn-primary btn-sm" id="sSubmitBtn">Submit the day for verification</button>' : '');
     const sb = $('sSubmitBtn');
     if (sb) sb.onclick = submitDay;
+    const ev = b.event;
+    $('sTarget').innerHTML = `<b>${esc(ev.name)}</b> · target ${ev.target ? `<b class="mono">GHS ${gh(ev.target)}</b>` : '<span class="sub">not set</span>'}`
+      + ` · raised so far <b class="mono">GHS ${gh(ev.raised)}</b>${ev.target ? ` <span class="sub">(${Math.round(ev.raised / ev.target * 100)}%)</span>` : ''}`
+      + (canManage() ? ' <button type="button" class="linklike" id="sTargetBtn">change target</button>' : '')
+      + (b.day ? `<br><span class="sub">Day set up by ${esc(b.day.setBy || '')} · ${b.day.shape === 'dual' ? '1st and 2nd service' : 'joint service'}</span>`
+        + ` · day target ${b.day.target ? `<b class="mono">GHS ${gh(b.day.target)}</b> <span class="sub">(${Math.round(b.dayTotal / b.day.target * 100)}% so far)</span>` : '<span class="sub">none</span>'}`
+        + (canManage() && !b.locked ? ' <button type="button" class="linklike" id="sDayTargetBtn">change</button>' : '')
+        + (canManage() && b.rows.every(r => r.status === 'missing') ? ' · <button type="button" class="linklike" id="sRemoveDayBtn">remove this day</button>' : '') : '');
+    if ($('sTargetBtn')) $('sTargetBtn').onclick = editTarget;
+    if ($('sDayTargetBtn')) $('sDayTargetBtn').onclick = editDayTarget;
+    if ($('sRemoveDayBtn')) $('sRemoveDayBtn').onclick = removeDay;
+    if (!setUp) return;
+    if (!S.step) showStep(b.entered === b.total && b.total ? 'tally' : b.rows.some(r => r.status !== 'missing') ? 'enter' : 'print');
+    else if (S.step === 'tally') renderTally();
     $('sBoard').innerHTML = b.services.map(s => `<div class="hs-svc"><div class="hs-svc-name">${esc(svc(s))}</div><div class="hs-tiles">`
       + b.rows.filter(r => r.service === s).map(r => `<button type="button" class="hs-tile hs-${r.status}${S.sheet && S.sheet.no === r.no ? ' hs-on' : ''}" data-tile="${r.no}"
           title="${esc(r.label)} — ${r.status === 'entered' ? 'entered by ' + esc(r.enteredBy || '') : r.status === 'photo' ? 'photo received, not typed yet' : 'not entered yet'}">
@@ -62,6 +147,43 @@
     $('sEntry').style.opacity = b.locked ? .55 : 1;
     $('sSaveBtn').disabled = b.locked;
   }
+  // ---- 3 · Tally & report ------------------------------------------------------
+  function renderTally() {
+    const b = S.board; if (!b) return;
+    const ev = b.event;
+    const left = b.total - b.entered;
+    $('sKpis').innerHTML = [
+      ['Day total', `GHS ${gh(b.dayTotal)}`],
+      ['Sheets entered', `${b.entered} of ${b.total}`],
+      [`${ev.name} raised`, `GHS ${gh(ev.raised)}${ev.target ? ` · ${Math.round(ev.raised / ev.target * 100)}%` : ''}`],
+      ['Day target', b.day && b.day.target ? `GHS ${gh(b.day.target)} · ${Math.round(b.dayTotal / b.day.target * 100)}%` : '—'],
+      [`${ev.name} target`, ev.target ? `GHS ${gh(ev.target)}` : '—'],
+    ].map(([k, v]) => `<div class="hs-kpi"><span>${esc(k)}</span><b class="mono">${v}</b></div>`).join('');
+    // One line per basket, a column per service.
+    const svcs = b.services;
+    const byKey = new Map();
+    b.rows.forEach(r => {
+      const k = r.key;
+      if (!byKey.has(k)) byKey.set(k, { label: r.key === 'seed' ? 'Seed contributions' : r.label, per: {}, total: 0, missing: 0 });
+      const x = byKey.get(k);
+      if (r.status === 'entered') { x.per[r.service] = (x.per[r.service] || 0) + r.total; x.total += r.total; } else x.missing++;
+    });
+    const head = `<tr><th>Basket</th>${svcs.length > 1 ? svcs.map(s => `<th class="num">${esc(s)}</th>`).join('') : ''}<th class="num">Total (GHS)</th></tr>`;
+    const lines = [...byKey.values()].map(x => `<tr${x.missing === svcs.length ? ' class="hs-miss"' : ''}><td>${esc(x.label)}${x.missing ? ` <span class="sub">(${x.missing === svcs.length ? 'not entered' : x.missing + ' sheet not entered'})</span>` : ''}</td>`
+      + (svcs.length > 1 ? svcs.map(s => `<td class="num mono">${x.per[s] != null ? gh(x.per[s]) : '—'}</td>`).join('') : '')
+      + `<td class="num mono"><b>${gh(x.total)}</b></td></tr>`).join('');
+    const totals = `<tr class="hs-tot"><th>Day total</th>${svcs.length > 1 ? svcs.map(s => `<th class="num mono">${gh(b.rows.filter(r => r.service === s && r.status === 'entered').reduce((t, r) => t + r.total, 0))}</th>`).join('') : ''}<th class="num mono">${gh(b.dayTotal)}</th></tr>`;
+    $('sTally').innerHTML = `<tbody><tr class="hs-headrow">${head.slice(4, -5)}</tr>${lines}${totals}</tbody>`;
+    const m = b.methods || {};
+    $('sMethods').innerHTML = '<b>By payment type</b>' + [['Cash', m.cash], ['MoMo', m.momo], ['Cheques', m.cheque], ['Transfers', m.transfer], ['Foreign (in GHS)', m.forex], ['Pledges (IOU)', m.ious]]
+      .map(([k, v]) => `<span><span class="sub">${k}</span> <b class="mono">${gh(v || 0)}</b></span>`).join('');
+    $('sSubmitWrap').innerHTML = b.locked ? '<span class="badge badge-info">signed off — locked</span>'
+      : b.status === 'submitted' ? '<span class="badge badge-info">submitted · awaiting Accounts Clerk</span>'
+        : left ? `<span class="sub">${left} sheet${left === 1 ? '' : 's'} still to enter before the day is submitted</span>`
+          : (canManage() ? '<button type="button" class="btn btn-primary" id="sSubmit2">Submit the day for verification</button>' : '');
+    if ($('sSubmit2')) $('sSubmit2').onclick = submitDay;
+  }
+
   const short = l => l.replace('Chairpersons & Co-chairpersons', 'Chairpersons').replace('Gratitude & Thanksgiving', 'Gratitude').replace('Seed contributions', 'Seed').replace('Seed — ', 'Seed: ').replace('Harvest Week — ', '');
 
   // ---- The form ----------------------------------------------------------------
@@ -260,15 +382,33 @@
 
   // ---- Wiring --------------------------------------------------------------------
   document.addEventListener('DOMContentLoaded', () => {});
-  $('sheetsBtn').onclick = () => open();
+  $('entryBtn').onclick = () => open();
   $('sCloseBtn').onclick = () => { $('sOverlay').style.display = 'none'; };
-  $('sheetBtn').onclick = () => {
-    // Print: the day is chosen in the sheets window, so open it there.
-    open(); setTimeout(() => $('sPrintBtn').focus(), 50);
-  };
+  document.querySelectorAll('.hs-step').forEach(b => { b.onclick = () => showStep(b.dataset.step); });
+  $('sTotalsBtn').onclick = () => { const d = day(); $('sOverlay').style.display = 'none'; openTotalsForm(d.eventId, d.date, d.services); };
+  $('sResultsBtn').onclick = () => { const d = day(); viewDay(d.eventId, d.date); };
+  $('sAnnounceBtn').onclick = () => { const d = day(); window.open(`/api/fundraising/announcement.pdf?eventId=${d.eventId}&date=${d.date}`, '_blank'); };
   $('sPrintBtn').onclick = () => { const d = day(); if (!d.date) return toast('Choose the date first.', true); window.open('/api/fundraising/basket-sheets.pdf?' + q(), '_blank'); };
   $('sSummaryBtn').onclick = () => window.open('/api/fundraising/day-summary.pdf?' + q(), '_blank');
-  ['sEvent', 'sDate', 'sDayType'].forEach(id => $(id).addEventListener('change', () => { clearForm(); refresh(); }));
+  $('sEvent').addEventListener('change', async () => {
+    if ($('sEvent').value === 'new' && !(await newEvent())) return;
+    S.lastEvent = $('sEvent').value; S.step = null; clearForm(); refresh();
+  });
+  $('sDate').addEventListener('change', () => { S.step = null; clearForm(); refresh(); });
+  $('sDayType').addEventListener('change', async () => {
+    const b = S.board;
+    if (b && b.setUp) {
+      const to = $('sDayType').value;
+      if (!confirm(`Change this day to ${to === 'dual' ? '1st and 2nd service' : 'a joint service'}? The sheet numbers change with it.`)) { $('sDayType').value = b.services.length > 1 ? 'dual' : 'joint'; return; }
+      return setUpDay(to, b.day ? b.day.target : null);
+    }
+    refresh();
+  });
+  document.querySelectorAll('#sSetup [data-shape]').forEach(x => { x.onclick = () => {
+    $('sDayType').value = x.dataset.shape;
+    document.querySelectorAll('#sSetup [data-shape]').forEach(y => y.classList.toggle('on', y === x));
+  }; });
+  $('sSetupBtn').onclick = () => setUpDay($('sDayType').value, $('sDayTarget').value.trim() ? num($('sDayTarget').value) : null);
   $('sNo').addEventListener('change', pickSheet);
   $('sNo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); pickSheet(); } });
   $('sCorrected').addEventListener('change', () => { $('sNoteWrap').style.display = $('sCorrected').checked ? '' : 'none'; if ($('sCorrected').checked) $('sNote').focus(); });
@@ -296,7 +436,4 @@
   });
   $('sOverlay').addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); save(); } });
   window.openHarvestSheets = open;
-  // The sheets button only for those who can enter figures.
-  const showBtn = () => { if (typeof me !== 'undefined' && me) $('sheetsBtn').style.display = canManage() ? '' : 'none'; else setTimeout(showBtn, 300); };
-  showBtn();
 })();

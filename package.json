@@ -1,7 +1,7 @@
 {
   "name": "aotc-track",
-  "version": "0.4.29",
-  "released": "2026-11-17",
+  "version": "0.4.31",
+  "released": "2026-11-19",
   "description": "AOTC Track — PCG Adabraka Official Town Congregation quarterly planning, attendance and reporting system. Built on the Smart DeonTech mainframe.",
   "main": "server.js",
   "scripts": {

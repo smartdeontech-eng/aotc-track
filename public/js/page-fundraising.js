@@ -180,10 +180,24 @@ async function load() {
     const k = `${e.eventId}|${e.date}`;
     (days[k] = days[k] || []).push(e);
   });
-  document.getElementById('entryRows').innerHTML = Object.entries(days)
+  // Days set up but with nothing entered yet are listed too (19 Nov 2026).
+  const setUpOnly = (data.days || []).filter(d => !days[`${d.eventId}|${d.date}`]);
+  const setUpRows = setUpOnly.map(d => [`${d.eventId}|${d.date}`, null, d]);
+  document.getElementById('entryRows').innerHTML = [...Object.entries(days), ...setUpRows]
     .sort((a, b) => b[0].split('|')[1].localeCompare(a[0].split('|')[1]))
-    .map(([k, list]) => {
+    .map(([k, list, dayOnly]) => {
       const [eventId, date] = k.split('|');
+      if (dayOnly) {
+        const ev = data.events.find(x => x.id === dayOnly.eventId);
+        return `<tr>
+        <td>${esc(ev ? ev.name : dayOnly.eventName || '')}</td>
+        <td>${fmtDate(date)}</td>
+        <td>${dayOnly.shape === 'dual' ? '1st + 2nd' : 'joint'}</td>
+        <td class="mono">${gh(0)}</td>
+        <td><span class="badge badge-progress">set up — nothing entered yet</span></td>
+        <td style="white-space:nowrap;"><button class="btn btn-primary btn-sm" onclick="openHarvestSheets(${eventId},'${date}')" title="Print the sheets and enter them">Open</button></td>
+      </tr>`;
+      }
       const total = list.reduce((s, e) => s + (e.total || 0), 0);
       const status = dayStatus(list);
       const svc = list.map(e => e.service).sort().join(' + ');
@@ -198,8 +212,8 @@ async function load() {
           <button class="btn btn-secondary btn-sm" onclick="viewDay(${eventId},'${date}')">Results</button>
           <a class="btn btn-secondary btn-sm" href="/api/fundraising/announcement.pdf?eventId=${eventId}&date=${date}" target="_blank">PDF</a>
           <button class="btn btn-secondary btn-sm" onclick="openHarvestSheets(${eventId},'${date}')"
-             title="The basket sheets for this day: print, enter, day summary and cash handover">Sheets</button>
-          ${canManage() && editable ? `<button class="btn btn-secondary btn-sm" onclick="editDay(${eventId},'${date}')">Edit</button>` : ''}
+             title="The day: its sheets, entry, tally and report">Open</button>
+          ${canManage() && editable ? `<button class="btn btn-secondary btn-sm" onclick="editDay(${eventId},'${date}')" title="Change the day's totals directly, without sheets">Edit totals</button>` : ''}
           ${canManage() && (status === 'pending' || status === 'declined') ? `<button class="btn btn-primary btn-sm" onclick="submitDay(${eventId},'${date}')">Submit</button>` : ''}
           ${canVerify() && (status === 'submitted' || status === 'pending' || status === 'declined') ? `<button class="btn btn-primary btn-sm" onclick="verifyDay(${eventId},'${date}')">Verify</button>` : ''}
           ${canApprove() && (status === 'verified' || (canVerify() && status === 'submitted')) ? `<button class="btn btn-primary btn-sm" onclick="approveDay(${eventId},'${date}')" title="${status === 'verified' ? 'Approve and lock' : 'Verify and approve in one step — both signatures are recorded in your name'}">Approve</button>` : ''}
@@ -1478,12 +1492,19 @@ async function saveActivityCats() {
 
 document.getElementById('eCancelBtn').onclick = () => document.getElementById('eOverlay').style.display = 'none';
 document.getElementById('vCloseBtn').onclick = () => document.getElementById('vOverlay').style.display = 'none';
-document.getElementById('entryBtn').onclick = () => {
+// The totals form (no sheets): opened from the day window ("Type totals without
+// sheets") or a day's "Edit totals". A day that already has figures opens them.
+// "+ Record fundraising day" (#entryBtn) opens the day window — page-fundraising-sheets.js.
+window.openTotalsForm = (eventId, date, dayType) => {
+  if (eventId && date && data.entries.some(e => e.eventId === Number(eventId) && e.date === date)) return editDay(Number(eventId), date);
   entryBase = {};
   document.getElementById('entryForm').reset();
   renderCatGrid();
   resetRates([]);
-  document.getElementById('eDate').value = todayInputValue();
+  if (eventId) document.getElementById('eEvent').value = String(eventId);
+  document.getElementById('eDate').value = date || todayInputValue();
+  if (dayType) document.getElementById('eDayType').value = dayType;
+  document.getElementById('eDayType').dispatchEvent(new Event('change'));
   document.getElementById('eOverlay').style.display = 'flex';
 };
 
@@ -1494,6 +1515,4 @@ document.getElementById('activityAddBtn').onclick = addActivity;
 document.getElementById('activityNew').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addActivity(); } });
 document.getElementById('saveActivityBtn').onclick = saveActivityCats;
 document.getElementById('statementBtn').onclick = () => window.open('/api/fundraising/statement.pdf', '_blank');
-// "Print harvest sheets" (#sheetBtn) is wired in page-fundraising-sheets.js:
-// the numbered basket sheets need the event and the date, chosen there.
 requireAuthAndRenderShell().then(u => { me = u; load(); });
