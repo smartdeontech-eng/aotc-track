@@ -147,14 +147,66 @@ function dayStatus(list) {
 function statusBadge(list) {
   const s = dayStatus(list);
   if (s === 'confirmed') return `<span class="badge badge-done" title="approved by ${esc(list[0].confirmedBy || '')}">approved ✓ ${esc((list[0].confirmedBy || '').split(' ')[0])}</span>`;
-  if (s === 'verified') return `<span class="badge badge-info" title="verified by ${esc(list[0].verifiedBy || '')}">verified · awaiting Treasurer</span>`;
-  if (s === 'submitted') return `<span class="badge badge-info" title="submitted by ${esc(list[0].submittedBy || '')}">submitted · awaiting Accounts Clerk</span>`;
+  if (s === 'verified') return `<span class="badge badge-info" title="verified by ${esc(list[0].verifiedBy || '')}">verified · with Treasurer</span>`;
+  if (s === 'submitted') return `<span class="badge badge-info" title="submitted by ${esc(list[0].submittedBy || '')}">submitted · with Accounts Clerk</span>`;
   if (s === 'declined') {
     const d = list.find(e => e.declined).declined;
     return `<span class="badge badge-critical" title="${esc(d.reason || '')}">declined by ${esc((d.by || '').split(' ')[0])} — fix &amp; resubmit</span>`;
   }
-  return '<span class="badge badge-progress">draft — not yet submitted</span>';
+  return '<span class="badge badge-progress" title="Not yet submitted">draft</span>';
 }
+
+// Row actions for an inflow day (21 Nov 2026, per Gideon — the strip of up to
+// nine buttons made the list scroll sideways). The row keeps Open and the one
+// next step in the approval chain; everything else sits in "More ▾"
+// (app.js showActionsMenu), so the list fits the page with no scrolling.
+const _dayMenus = {};
+function dayActionsHtml(k, list, status, editable, eventId, date) {
+  const ev = Number(eventId);
+  const next = canManage() && (status === 'pending' || status === 'declined')
+      ? { label: 'Submit', fn: () => submitDay(ev, date) }
+    : canApprove() && (status === 'verified' || (canVerify() && status === 'submitted'))
+      ? { label: 'Approve', fn: () => approveDay(ev, date), title: status === 'verified' ? 'Approve and lock' : 'Verify and approve in one step — both signatures are recorded in your name' }
+    : canVerify() && status === 'submitted'
+      ? { label: 'Verify', fn: () => verifyDay(ev, date) }
+    : null;
+  const items = [
+    { label: 'Results', onClick: () => viewDay(ev, date) },
+    { label: 'Announcement PDF', href: `/api/fundraising/announcement.pdf?eventId=${ev}&date=${date}` },
+    canManage() && editable && { label: 'Edit totals', title: "Change the day's totals directly, without sheets", onClick: () => editDay(ev, date) },
+    canManage() && (status === 'pending' || status === 'declined') && next && next.label !== 'Submit' && { label: 'Submit', onClick: () => submitDay(ev, date) },
+    canVerify() && (status === 'submitted' || status === 'pending' || status === 'declined') && !(next && next.label === 'Verify') && { label: 'Verify', onClick: () => verifyDay(ev, date) },
+    canApprove() && (status === 'verified' || (canVerify() && status === 'submitted')) && !(next && next.label === 'Approve') && { label: 'Approve', onClick: () => approveDay(ev, date) },
+    'divider',
+    (canVerify() || canApprove()) && status !== 'confirmed' && status !== 'pending' && status !== 'declined' && { label: 'Decline', danger: true, onClick: () => declineDay(ev, date) },
+    (status === 'confirmed' || status === 'verified') && (isElevated(me)
+      ? { label: 'Unlock', danger: true, onClick: () => unconfirmDay(ev, date) }
+      : { label: 'Ask to reopen', onClick: () => askToReopen('fundraising-day', { eventId: ev, date }, {})
+            .then(sent => { if (sent && typeof window.onReopenRequested === 'function') window.onReopenRequested(); }) }),
+    ...(canManage() && editable ? list.map(e => ({
+      label: e.service === 'joint' ? 'Delete this entry' : `Delete ${e.service} service entry`,
+      danger: true, onClick: () => delEntry(e.id) })) : []),
+  ].filter(Boolean);
+  while (items.length && items[items.length - 1] === 'divider') items.pop();
+  _dayMenus[k] = items;
+  return `<div class="fr-act-row">
+    <button class="btn btn-secondary btn-sm" onclick="openHarvestSheets(${ev},'${date}')" title="The day: its sheets, entry, tally and report">Open</button>
+    ${next ? `<button class="btn btn-primary btn-sm" data-day-next="${esc(k)}"${next.title ? ` title="${esc(next.title)}"` : ''}>${next.label}</button>` : ''}
+    <button class="btn btn-secondary btn-sm" data-day-menu="${esc(k)}" aria-haspopup="menu">More ▾</button>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  const m = e.target.closest && e.target.closest('[data-day-menu]');
+  if (m) { showActionsMenu(m, _dayMenus[m.dataset.dayMenu] || []); return; }
+  const n = e.target.closest && e.target.closest('[data-day-next]');
+  if (n) {
+    const [ev, date] = n.dataset.dayNext.split('|');
+    const st = n.textContent.trim();
+    if (st === 'Submit') submitDay(Number(ev), date);
+    else if (st === 'Verify') verifyDay(Number(ev), date);
+    else if (st === 'Approve') approveDay(Number(ev), date);
+  }
+});
 
 async function load() {
   data = await api('/fundraising/overview');
@@ -190,12 +242,11 @@ async function load() {
       if (dayOnly) {
         const ev = data.events.find(x => x.id === dayOnly.eventId);
         return `<tr>
-        <td>${esc(ev ? ev.name : dayOnly.eventName || '')}</td>
-        <td>${fmtDate(date)}</td>
+        <td><b>${esc(ev ? ev.name : dayOnly.eventName || '')}</b><div class="sub">${fmtDate(date)}</div></td>
         <td>${dayOnly.shape === 'dual' ? '1st + 2nd' : 'joint'}</td>
         <td class="mono">${gh(0)}</td>
         <td><span class="badge badge-progress">set up — nothing entered yet</span></td>
-        <td style="white-space:nowrap;"><button class="btn btn-primary btn-sm" onclick="openHarvestSheets(${eventId},'${date}')" title="Print the sheets and enter them">Open</button></td>
+        <td class="fr-act"><div class="fr-act-row"><button class="btn btn-primary btn-sm" onclick="openHarvestSheets(${eventId},'${date}')" title="Print the sheets and enter them">Open</button></div></td>
       </tr>`;
       }
       const total = list.reduce((s, e) => s + (e.total || 0), 0);
@@ -203,28 +254,13 @@ async function load() {
       const svc = list.map(e => e.service).sort().join(' + ');
       const editable = status === 'pending' || status === 'declined' || status === 'submitted';
       return `<tr>
-        <td>${esc(list[0].eventName)}</td>
-        <td>${fmtDate(date)}</td>
+        <td><b>${esc(list[0].eventName)}</b><div class="sub">${fmtDate(date)}</div></td>
         <td>${esc(svc)}</td>
         <td class="mono">${gh(total)}</td>
         <td>${statusBadge(list)}</td>
-        <td style="white-space:nowrap;">
-          <button class="btn btn-secondary btn-sm" onclick="viewDay(${eventId},'${date}')">Results</button>
-          <a class="btn btn-secondary btn-sm" href="/api/fundraising/announcement.pdf?eventId=${eventId}&date=${date}" target="_blank">PDF</a>
-          <button class="btn btn-secondary btn-sm" onclick="openHarvestSheets(${eventId},'${date}')"
-             title="The day: its sheets, entry, tally and report">Open</button>
-          ${canManage() && editable ? `<button class="btn btn-secondary btn-sm" onclick="editDay(${eventId},'${date}')" title="Change the day's totals directly, without sheets">Edit totals</button>` : ''}
-          ${canManage() && (status === 'pending' || status === 'declined') ? `<button class="btn btn-primary btn-sm" onclick="submitDay(${eventId},'${date}')">Submit</button>` : ''}
-          ${canVerify() && (status === 'submitted' || status === 'pending' || status === 'declined') ? `<button class="btn btn-primary btn-sm" onclick="verifyDay(${eventId},'${date}')">Verify</button>` : ''}
-          ${canApprove() && (status === 'verified' || (canVerify() && status === 'submitted')) ? `<button class="btn btn-primary btn-sm" onclick="approveDay(${eventId},'${date}')" title="${status === 'verified' ? 'Approve and lock' : 'Verify and approve in one step — both signatures are recorded in your name'}">Approve</button>` : ''}
-          ${(canVerify() || canApprove()) && status !== 'confirmed' && status !== 'pending' && status !== 'declined' ? `<button class="btn btn-danger btn-sm" onclick="declineDay(${eventId},'${date}')">Decline</button>` : ''}
-          ${(status === 'confirmed' || status === 'verified') ? (isElevated(me)
-              ? `<button class="btn btn-danger btn-sm" onclick="unconfirmDay(${eventId},'${date}')">Unlock</button>`
-              : reopenButtonHtml('fundraising-day', { eventId, date }, 'Ask to reopen')) : ''}
-          ${canManage() && editable ? list.map(e => `<button class="btn btn-danger btn-sm" onclick="delEntry(${e.id})" title="delete ${e.service}">✕${e.service === 'joint' ? '' : e.service}</button>`).join('') : ''}
-        </td>
+        <td class="fr-act">${dayActionsHtml(k, list, status, editable, eventId, date)}</td>
       </tr>`;
-    }).join('') || '<tr><td colspan="6" class="sub">No inflows recorded yet.</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="sub">No inflows recorded yet.</td></tr>';
 
   // IOU register — outstanding first (soonest due), then paid
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -395,6 +431,45 @@ function addIouRow(p, i) {
   document.querySelector(`[data-iou-rows="${p}"]`).appendChild(div);
 }
 
+// ---- Bank picker (21 Nov 2026, per Gideon) ----
+// Every "Bank" box on the harvest forms is a dropdown of the 23 universal banks
+// licensed by the Bank of Ghana (BoG register, Nov 2026), plus "Other" for a
+// rural/community bank, savings & loans or anything renamed since. The chosen
+// name goes into a plain text input beside it (the one the save code reads),
+// so nothing downstream changes; that input only shows for "Other". A value
+// saved before that isn't on the list opens as Other with the text kept.
+// When a bank merges or renames, change this list (store the short name).
+const GH_BANKS = [
+  'Absa Bank Ghana', 'Access Bank Ghana', 'ADB (Agricultural Development Bank)', 'Bank of Africa Ghana',
+  'CalBank', 'Consolidated Bank Ghana (CBG)', 'Ecobank Ghana', 'Fidelity Bank Ghana', 'First Atlantic Bank',
+  'First National Bank Ghana', 'FirstBank Ghana', 'GCB Bank', 'GTBank Ghana', 'National Investment Bank (NIB)',
+  'OmniBSIC Bank Ghana', 'Prudential Bank', 'Republic Bank Ghana', 'Société Générale Ghana', 'Stanbic Bank Ghana',
+  'Standard Chartered Bank Ghana', 'UBA Ghana', 'Universal Merchant Bank (UMB)', 'Zenith Bank Ghana',
+];
+// attrs: the attributes the text input carries today (e.g. 'data-chq-bank' or
+// 'data-k="bank" data-nav'); style: optional width for the select.
+function bankPickHtml(attrs, value, style) {
+  const v = String(value || '').trim();
+  const known = GH_BANKS.find(b => b.toLowerCase() === v.toLowerCase());
+  const other = !!v && !known;
+  const nav = /\bdata-nav\b/.test(attrs) ? ' data-nav' : '';
+  return `<select data-bank-pick${nav} aria-label="Bank"${style ? ` style="${style}"` : ''}>
+      <option value="">Bank…</option>
+      ${GH_BANKS.map(b => `<option${known === b ? ' selected' : ''}>${esc(b)}</option>`).join('')}
+      <option value="__other"${other ? ' selected' : ''}>Other (type it)…</option>
+    </select><input ${attrs} placeholder="Type the bank" autocomplete="off" value="${esc(known || v)}"
+      style="${other ? '' : 'display:none;'}${style || ''}">`;
+}
+document.addEventListener('change', e => {
+  const sel = e.target.closest && e.target.closest('select[data-bank-pick]');
+  if (!sel) return;
+  const box = sel.nextElementSibling;
+  if (!box) return;
+  if (sel.value === '__other') { box.style.display = ''; box.value = ''; box.focus(); }
+  else { box.style.display = 'none'; box.value = sel.value; }
+  box.dispatchEvent(new Event('input', { bubbles: true }));
+});
+
 function addChqRow(p, c) {
   const div = document.createElement('div');
   div.className = 'field-row';
@@ -402,7 +477,7 @@ function addChqRow(p, c) {
   div.style.marginTop = '4px';
   div.innerHTML = `
     <div class="field" style="max-width:150px;"><input data-chq-no placeholder="Cheque no." value="${c ? esc(c.number || '') : ''}"></div>
-    <div class="field"><input data-chq-bank placeholder="Bank" value="${c ? esc(c.bank || '') : ''}"></div>
+    <div class="field">${bankPickHtml('data-chq-bank', c && c.bank)}</div>
     <div class="field" style="max-width:130px;"><input inputmode="decimal" data-num data-chq-amt placeholder="GHS" value="${c && c.amount ? c.amount.toLocaleString() : ''}" style="text-align:right;"></div>
     <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove(); refreshEntryTotal();">✕</button>`;
   document.querySelector(`[data-chq-rows="${p}"]`).appendChild(div);
@@ -413,7 +488,7 @@ function addTrfRow(p, t) {
   div.setAttribute('data-trf', p);
   div.style.marginTop = '4px';
   div.innerHTML = `
-    <div class="field"><input data-trf-bank placeholder="Bank" value="${t ? esc(t.bank || '') : ''}"></div>
+    <div class="field">${bankPickHtml('data-trf-bank', t && t.bank)}</div>
     <div class="field" style="max-width:170px;"><input data-trf-ref placeholder="Reference" value="${t ? esc(t.reference || '') : ''}"></div>
     <div class="field" style="max-width:130px;"><input inputmode="decimal" data-num data-trf-amt placeholder="GHS" value="${t && t.amount ? t.amount.toLocaleString() : ''}" style="text-align:right;"></div>
     <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove(); refreshEntryTotal();">✕</button>`;
@@ -428,11 +503,11 @@ function addTrfRow(p, t) {
 function bdRowFields(kind, v) {
   if (kind === 'chq') {
     return `<div class="field" style="max-width:130px;"><input data-chq-no placeholder="Cheque no." value="${v ? esc(v.number || '') : ''}"></div>
-       <div class="field"><input data-chq-bank placeholder="Bank" value="${v ? esc(v.bank || '') : ''}"></div>
+       <div class="field">${bankPickHtml('data-chq-bank', v && v.bank)}</div>
        <div class="field" style="max-width:120px;"><input inputmode="decimal" data-num data-chq-amt placeholder="GHS" value="${v && v.amount ? v.amount.toLocaleString() : ''}" style="text-align:right;"></div>`;
   }
   if (kind === 'trf') {
-    return `<div class="field"><input data-trf-bank placeholder="Bank" value="${v ? esc(v.bank || '') : ''}"></div>
+    return `<div class="field">${bankPickHtml('data-trf-bank', v && v.bank)}</div>
        <div class="field" style="max-width:150px;"><input data-trf-ref placeholder="Reference" value="${v ? esc(v.reference || '') : ''}"></div>
        <div class="field" style="max-width:120px;"><input inputmode="decimal" data-num data-trf-amt placeholder="GHS" value="${v && v.amount ? v.amount.toLocaleString() : ''}" style="text-align:right;"></div>`;
   }

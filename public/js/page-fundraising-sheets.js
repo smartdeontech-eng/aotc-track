@@ -193,8 +193,9 @@
       <td class="num mono" data-amt="${d.key}"></td></tr>`).join('');
   }
   function rowHtml(kind, v) {
-    return `<div class="hs-row" data-row="${kind}">` + LISTS[kind].map(([k, label, w, isNum, type]) =>
-      `<input data-k="${k}" placeholder="${label}" style="width:${w}px" ${type ? `type="${type}"` : ''} ${isNum ? 'inputmode="decimal"' : ''} data-nav value="${v && v[k] != null ? esc(String(v[k])) : ''}">`).join('')
+    return `<div class="hs-row" data-row="${kind}">` + LISTS[kind].map(([k, label, w, isNum, type]) => k === 'bank'
+      ? bankPickHtml(`data-k="bank" data-nav`, v && v.bank, `width:${w + 30}px`)
+      : `<input data-k="${k}" placeholder="${label}" style="width:${w}px" ${type ? `type="${type}"` : ''} ${isNum ? 'inputmode="decimal"' : ''} data-nav value="${v && v[k] != null ? esc(String(v[k])) : ''}">`).join('')
       + '<button type="button" class="btn btn-secondary btn-sm" data-del title="Remove this line">✕</button></div>';
   }
   function addRow(kind, v) { const box = document.querySelector(`[data-list="${kind}"] .hs-rows`); box.insertAdjacentHTML('beforeend', rowHtml(kind, v)); }
@@ -419,7 +420,7 @@
   entry.addEventListener('input', () => { compute(); saveDraft(); });
   entry.addEventListener('click', e => {
     const add = e.target.closest('[data-add]');
-    if (add) { addRow(add.dataset.add); const rows = document.querySelectorAll(`[data-row="${add.dataset.add}"]`); rows[rows.length - 1].querySelector('input').focus(); return; }
+    if (add) { addRow(add.dataset.add); const rows = document.querySelectorAll(`[data-row="${add.dataset.add}"]`); rows[rows.length - 1].querySelector('input, select').focus(); return; }
     const del = e.target.closest('[data-del]');
     if (del) { const row = del.closest('.hs-row'); const box = row.parentElement; row.remove(); if (!box.children.length) addRow(box.parentElement.dataset.list); compute(); saveDraft(); }
   });

@@ -1902,7 +1902,7 @@ div.hs-photo img { height: 64px; border-radius: 6px; border: 1px solid var(--rul
 .hs-list { margin-bottom: 10px; }
 .hs-list > b { display: block; font-size: 12.5px; margin-bottom: 4px; }
 .hs-row { display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; }
-.hs-row input { padding: 5px 7px; font-size: 14px; min-width: 0; max-width: 100%; }
+.hs-row input, .hs-row select { padding: 5px 7px; font-size: 14px; min-width: 0; max-width: 100%; }
 .hs-totals { display: grid; grid-template-columns: 1fr 260px; gap: 8px 18px; align-items: start; margin-top: 8px;
   padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--hover-surface); }
 .hs-sum { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 14px; font-size: 13px; }
@@ -1918,7 +1918,7 @@ div.hs-photo img { height: 64px; border-radius: 6px; border: 1px solid var(--rul
 .hs-actions { position: sticky; bottom: -1px; background: var(--panel); padding: 10px 0 2px; }
 @media (max-width: 760px) {
   .hs-cols, .hs-totals { grid-template-columns: 1fr; }
-  .hs-row input { flex: 1 1 40%; width: auto !important; }
+  .hs-row input, .hs-row select { flex: 1 1 40%; width: auto !important; }
   .hs-tiles { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); }
 }
 label.hs-corr { display: flex; justify-content: flex-start; text-align: left; width: auto; font-weight: 500; }
@@ -1961,3 +1961,15 @@ label.hs-corr input[type="checkbox"] { width: auto; height: auto; margin: 0; fle
 .hs-shape button { padding: 9px 14px; border: 0; background: var(--panel); font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; }
 .hs-shape button + button { border-left: 1px solid var(--rule); }
 .hs-shape button.on { background: var(--primary); color: #fff; }
+
+/* Inflow entries: no sideways scrolling (21 Nov 2026) — Open + next step + More ▾ */
+.fr-inflows td.fr-act { width: 1%; }
+.fr-inflows .fr-act-row { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
+.fr-inflows td .badge { white-space: normal; }
+@media (max-width: 760px) {
+  .fr-inflows td.fr-act { width: auto; }
+  .fr-inflows .fr-act-row { width: 100%; justify-content: stretch; }
+  table.responsive td.rt-actions .fr-act-row .btn, .fr-inflows .fr-act-row .btn { flex: 1 1 0; min-width: 0; margin: 0; justify-content: center; }
+}
+/* Bank picker: the "Other" text box sits under the dropdown in form fields (21 Nov 2026) */
+.field select[data-bank-pick] + input { margin-top: 4px; }

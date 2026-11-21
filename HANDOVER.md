@@ -27,7 +27,7 @@ command** — not at the end of the session, which may never come. Each update:
 3. adds anything that bit to **§8**.
 
 Small fixes with no behaviour change (a typo, a comment) do not need an entry.
-Last updated: **19 Nov 2026, evening** (0.4.31: the day is set up first — built, not deployed; 0.4.30 deployed). Before that, 18 Nov 2026 (0.4.29: harvest basket sheets — deployed, blue live; fresh git history pushed to GitHub smartdeontech-eng/aotc-track). Before that, 3 Nov 2026, 09:45 UTC (0.4.0: update bar, About with What's new, numbered releases — built, not deployed; before that: Pulse sign-ins reporter, tray deployed; blue live; SQLite + blue-green working). Commits from 10–24 Oct by other sessions are not summarised here; see `git log`.
+Last updated: **21 Nov 2026** (0.4.32: inflow list fits the page — built, not deployed; 0.4.31 deployed, green live). Before that, **19 Nov 2026, evening** (0.4.31: the day is set up first; 0.4.30 deployed). Before that, 18 Nov 2026 (0.4.29: harvest basket sheets — deployed, blue live; fresh git history pushed to GitHub smartdeontech-eng/aotc-track). Before that, 3 Nov 2026, 09:45 UTC (0.4.0: update bar, About with What's new, numbered releases — built, not deployed; before that: Pulse sign-ins reporter, tray deployed; blue live; SQLite + blue-green working). Commits from 10–24 Oct by other sessions are not summarised here; see `git log`.
 
 ---
 
@@ -227,6 +227,29 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Session minutes: tidy-up, decisions, matters, chairman signs | `claude/session-minutes-oct-2026.md` |
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
+
+### Built 21 Nov 2026 — 0.4.32: the inflow entries list fits the page (no sideways scrolling)
+
+Gideon: "I don't like that I have to scroll." The inflow list sat beside the expenses card and each row
+carried up to nine buttons (Results, PDF, Open, Edit totals, Submit, Verify, Approve, Decline, ✕1st, ✕2nd).
+Now: the inflows card is full width with expenses below; Event and Date are one column; each row shows
+**Open**, the **one next step** in the chain (Submit → Verify → Approve, whichever this user can do now)
+and **More ▾** (app.js `showActionsMenu`, as on the other list pages) holding Results, Announcement PDF,
+Edit totals, any other approval step, Decline, Unlock / Ask to reopen and "Delete 1st/2nd service entry".
+Code: `dayActionsHtml()` in page-fundraising.js (menu items kept in `_dayMenus`, one delegated click
+handler for `[data-day-menu]` / `[data-day-next]`); CSS `.fr-inflows` / `.fr-act-row` at the end of
+style.css — on phones the three buttons share one row (the selector has to beat
+`table.responsive td.rt-actions .btn`'s 50% min-width). Draft badge shortened to "draft" (tooltip says
+not yet submitted). Checked in Chrome at 1280 and 390 px: no horizontal overflow, menu opens.
+
+Same release — **bank dropdown**. Gideon: "we know all the banks in Ghana… a drop down". `GH_BANKS` +
+`bankPickHtml(attrs, value, style)` near the top of page-fundraising.js (used by the totals form's cheque /
+transfer rows, the per-basket breakdown rows, and page-fundraising-sheets.js `rowHtml` for the sheet
+entry). The select (`data-bank-pick`) writes into the existing text input beside it, so save code,
+routes and PDFs are unchanged; the input only shows for "Other (type it)…" (rural/community banks,
+savings & loans). An old value not on the list opens as Other with its text. List = the 23 universal banks
+on the BoG register, Nov 2026 (Société Générale Ghana kept: its sale to Attijariwafa awaited approval in
+Oct 2026 — rename it here when the bank rebrands).
 
 ### Built 19 Nov 2026 — 0.4.31: the fundraising day is set up first (as Sunday attendance)
 
@@ -821,7 +844,13 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.31 the day is set up first — built, not deployed (19 Nov 2026)
+### 0.4.32 inflow list fits the page — built, not deployed (21 Nov 2026)
+
+Release with the usual order. Check: Fundraising → Inflow entries is full width, no sideways scroll on a
+laptop or phone; each day shows Open, its next step and More ▾. In a sheet, the cheque and transfer Bank
+boxes are dropdowns; Other shows a box to type in.
+
+### 0.4.31 the day is set up first — deployed (checked 21 Nov 2026: healthz 0.4.31, green live)
 
 0.4.30 was released 19 Nov from the phone (files uploaded to ~/aotc-staging, release.sh run) and checked
 live (healthz 0.4.30, blue). Release 0.4.31 with the usual order. Check: Record fundraising day on a new

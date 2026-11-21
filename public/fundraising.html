@@ -46,14 +46,16 @@
         </table>
       </div>
 
-      <div class="dash-two-col" style="align-items:start;">
-        <div class="card" style="padding:0;">
+      <!-- Inflows full width, expenses below (21 Nov 2026): side by side with the expenses
+           the inflow list had to scroll sideways. -->
+      <div class="card fr-inflows" style="padding:0; margin-bottom:20px;">
           <div class="section-title" style="padding:16px 16px 0;"><h3>Inflow entries</h3></div>
           <table>
-            <thead><tr><th>Event</th><th>Date</th><th>Services</th><th>Total (GHS)</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Event &amp; date</th><th>Services</th><th>Total (GHS)</th><th>Status</th><th></th></tr></thead>
             <tbody id="entryRows"></tbody>
           </table>
-        </div>
+      </div>
+      <div>
         <div class="card">
           <div class="section-title"><h3>Outflows (expenses)</h3></div>
           <form id="expForm">

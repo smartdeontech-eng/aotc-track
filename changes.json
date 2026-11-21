@@ -1,5 +1,9 @@
 [
   [
+    "0.4.32",
+    "Harvest: the inflow entries list fits the page — no more scrolling sideways. It now has the whole width (expenses are below it), the event and date share one column, and each day shows just Open, its next step (Submit, Verify or Approve) and More ▾ for the rest: Results, the announcement PDF, Edit totals, Decline, Unlock and deleting an entry. Every Bank box (cheques and bank transfers, on the harvest sheets and the totals form) is now a dropdown of the 23 banks licensed by the Bank of Ghana; choose Other to type a rural or community bank, a savings and loans company or any other."
+  ],
+  [
     "0.4.31",
     "Harvest: a fundraising day is set up first, as a Sunday is for attendance. In Record fundraising day choose the event and the date, then Set up the day — joint or 1st and 2nd service, and a target for the day if it has one. The desk team is told; the sheets are then printed, entered, tallied and reported for that day, and the tally shows the day against its own target and the event against its target. A set-up day is listed straight away, before anything is entered; one set up by mistake can be removed while nothing is on it. Nothing can be printed or entered for a day that is not set up."
   ],
