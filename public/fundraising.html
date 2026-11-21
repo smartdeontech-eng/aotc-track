@@ -168,37 +168,60 @@
       <div class="hs-board" id="sBoard"></div>
 
       <div class="hs-entry" id="sEntry">
-        <div class="hs-sheetline">
-          <div class="field" style="max-width:120px;"><label>Sheet no.</label>
-            <input id="sNo" inputmode="numeric" autocomplete="off" placeholder="e.g. 3" data-nav></div>
-          <div class="hs-which" id="sWhich">Type the number printed on the sheet.</div>
-          <div class="field" id="sSeedWrap" style="max-width:230px; display:none;"><label>Seed from</label><select id="sSeedBody" data-nav></select></div>
-          <div class="hs-photo" id="sPhoto"></div>
-        </div>
-        <div class="hs-cols">
-          <div class="hs-col">
+        <!-- Laid out as the printed basket sheet (21 Nov 2026, per Gideon): the same
+             blocks in the same places, so the eye moves across paper and screen together.
+             Enter follows the paper's reading order; the basket total comes last. -->
+        <div class="hs-paper">
+          <div class="hs-band">
+            <div class="hs-band-cell hs-band-basket"><span>Basket</span><b id="sBandBasket">—</b></div>
+            <div class="hs-band-cell"><span>Event</span><b id="sBandEvent">—</b></div>
+            <div class="hs-band-cell"><span>Date</span><b id="sBandDate">—</b></div>
+            <div class="hs-band-cell"><span>Service</span><b id="sBandSvc">—</b></div>
+            <label class="hs-band-no"><span>Sheet no.</span>
+              <input id="sNo" inputmode="numeric" autocomplete="off" placeholder="—" data-nav></label>
+          </div>
+          <div class="hs-sheetline">
+            <div class="hs-which" id="sWhich">Type the number printed on the sheet (top right on the paper).</div>
+            <div class="field" id="sSeedWrap" style="max-width:230px; display:none;"><label>Seed from</label><select id="sSeedBody" data-nav></select></div>
+            <div class="hs-photo" id="sPhoto"></div>
+          </div>
+
+          <div class="hs-top">
             <table class="hs-cash">
               <!-- No <thead> on purpose: app.js turns tables with one into cards on phones, and this one must stay a grid. -->
-              <tbody><tr class="hs-headrow"><th>A · Cash</th><th class="num">Pieces</th><th class="num">Amount</th></tr></tbody>
+              <tbody><tr class="hs-headrow"><th>Cash</th><th class="num">Pieces</th><th class="num">Amount</th></tr></tbody>
               <tbody id="sCash"></tbody>
-              <tfoot><tr><th>Cash counted</th><th></th><th class="num mono" id="sCashTotal">0.00</th></tr>
-                <tr><th colspan="2"><label for="sWrittenCash">Cash total written on the sheet</label></th>
-                  <th class="num"><input id="sWrittenCash" inputmode="decimal" class="hs-written" data-nav></th></tr></tfoot>
+              <tfoot>
+                <tr class="hs-cashtot"><th>A &nbsp; Cash total <span class="sub">written on the sheet</span></th>
+                  <th class="num" colspan="2"><input id="sWrittenCash" inputmode="decimal" class="hs-written" data-nav aria-label="Cash total written on the sheet"></th></tr>
+                <tr><td class="sub">Counted from the pieces</td><td></td><td class="num mono" id="sCashTotal">0.00</td></tr>
+              </tfoot>
             </table>
+
+            <div class="hs-basket">
+              <div class="hs-bk-head"><span>This basket</span><span>Amount (GHS)</span></div>
+              <div class="hs-bk-line"><span>A &nbsp; Cash</span><i>from the count</i><b class="mono" id="sPartA">0.00</b></div>
+              <div class="hs-bk-line"><span>B &nbsp; Cheques</span><i>list below</i><b class="mono" id="sPartB">0.00</b></div>
+              <div class="hs-bk-line"><span>C &nbsp; MoMo</span><i>list below</i><b class="mono" id="sPartC">0.00</b></div>
+              <div class="hs-bk-line"><span>D &nbsp; Bank transfers</span><i>list below</i><b class="mono" id="sPartD">0.00</b></div>
+              <div class="hs-bk-line"><span>E &nbsp; Foreign notes (in GHS)</span><i>list below</i><b class="mono" id="sPartE">0.00</b></div>
+              <div class="hs-bk-line"><span>F &nbsp; Pledges (IOU)</span><i>list below</i><b class="mono" id="sPartF">0.00</b></div>
+              <div class="hs-bk-typed"><span>Typed total (A to F)</span><b class="mono" id="sTyped">0.00</b></div>
+              <label class="hs-bk-total"><span>BASKET TOTAL (A to F) <small>written on the sheet</small></span>
+                <input id="sWrittenTotal" inputmode="decimal" class="hs-written" data-nav></label>
+              <div class="hs-check" id="sCheck"></div>
+            </div>
           </div>
-          <div class="hs-col">
-            <div class="hs-list" data-list="momo"><b>B · MoMo</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="momo">+ MoMo</button></div>
-            <div class="hs-list" data-list="cheques"><b>C · Cheques</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="cheques">+ Cheque</button></div>
-            <div class="hs-list" data-list="transfers"><b>D · Bank transfers</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="transfers">+ Transfer</button></div>
-            <div class="hs-list" data-list="forex"><b>E · Foreign notes</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="forex">+ Currency</button></div>
-            <div class="hs-list" data-list="ious"><b>F · Pledges (IOU)</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="ious">+ Pledge</button></div>
+
+          <div class="hs-list" data-list="cheques"><b>B &nbsp; Cheques</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="cheques">+ Cheque</button></div>
+          <div class="hs-two">
+            <div class="hs-list" data-list="momo"><b>C &nbsp; MoMo</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="momo">+ MoMo</button></div>
+            <div class="hs-list" data-list="transfers"><b>D &nbsp; Bank transfers</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="transfers">+ Transfer</button></div>
           </div>
-        </div>
-        <div class="hs-totals">
-          <div class="hs-sum" id="sSum"></div>
-          <div class="field hs-written-total"><label for="sWrittenTotal">BASKET TOTAL written on the sheet</label>
-            <input id="sWrittenTotal" inputmode="decimal" class="hs-written" data-nav></div>
-          <div class="hs-check" id="sCheck"></div>
+          <div class="hs-two">
+            <div class="hs-list" data-list="forex"><b>E &nbsp; Foreign notes</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="forex">+ Currency</button></div>
+            <div class="hs-list" data-list="ious"><b>F &nbsp; Pledges (IOU)</b><div class="hs-rows"></div><button type="button" class="btn btn-secondary btn-sm" data-add="ious">+ Pledge</button></div>
+          </div>
         </div>
         <label class="hs-corr"><input type="checkbox" id="sCorrected"> The sheet's own adding-up is wrong — save what was typed</label>
         <div class="field" id="sNoteWrap" style="display:none;"><input id="sNote" placeholder="What was wrong on the sheet? (kept on the record)"></div>

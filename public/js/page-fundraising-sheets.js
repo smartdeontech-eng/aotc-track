@@ -17,13 +17,16 @@
 (function () {
   const $ = id => document.getElementById(id);
   const S = { board: null, sheet: null, photoId: null, busy: false, step: null };
+  // Columns as printed on the basket sheet, in the same order; the number is the
+  // column's share of the row (CSS grid fr). Forex has a worked-out GHS column.
   const LISTS = {
-    momo: [['name', 'Name or number', 160], ['reference', 'Transaction ID', 130], ['amount', 'Amount', 100, true]],
-    cheques: [['number', 'Cheque no.', 110], ['bank', 'Bank', 140], ['amount', 'Amount', 100, true]],
-    transfers: [['bank', 'Bank', 140], ['reference', 'Reference', 120], ['amount', 'Amount', 100, true]],
-    forex: [['currency', 'Currency', 80], ['amount', 'Amount', 90, true], ['rate', 'Rate', 80, true]],
-    ious: [['name', 'Name', 140], ['contact', 'Phone', 110], ['dueDate', 'By (date)', 130, false, 'date'], ['amount', 'Amount', 90, true]],
+    cheques: [['number', 'Cheque no.', 90], ['bank', 'Bank', 130], ['drawer', 'Drawer / name (if known)', 170], ['amount', 'Amount (GHS)', 80, true]],
+    momo: [['name', 'Name or number', 100], ['reference', 'Transaction ID', 80], ['amount', 'Amount', 55, true]],
+    transfers: [['bank', 'Bank', 80], ['reference', 'Reference', 90], ['amount', 'Amount', 55, true]],
+    forex: [['currency', 'Currency', 55], ['amount', 'Amount', 55, true], ['rate', 'Rate', 45, true]],
+    ious: [['name', 'Name', 80], ['contact', 'Phone', 65], ['dueDate', 'By (date)', 62, false, 'date'], ['amount', 'Amount', 50, true]],
   };
+  const gridCols = kind => LISTS[kind].map(c => `minmax(0, ${c[2]}fr)`).join(' ') + (kind === 'forex' ? ' minmax(0, 60fr)' : '') + ' 30px';
   const DRAFT_KEY = 'aotc.harvestSheetDraft';
   const num = v => { const x = Number(String(v == null ? '' : v).replace(/[, ]/g, '')); return Number.isFinite(x) ? x : 0; };
   const pad2 = v => String(v).padStart(2, '0');
@@ -193,13 +196,25 @@
       <td class="num mono" data-amt="${d.key}"></td></tr>`).join('');
   }
   function rowHtml(kind, v) {
-    return `<div class="hs-row" data-row="${kind}">` + LISTS[kind].map(([k, label, w, isNum, type]) => k === 'bank'
-      ? bankPickHtml(`data-k="bank" data-nav`, v && v.bank, `width:${w + 30}px`)
-      : `<input data-k="${k}" placeholder="${label}" style="width:${w}px" ${type ? `type="${type}"` : ''} ${isNum ? 'inputmode="decimal"' : ''} data-nav value="${v && v[k] != null ? esc(String(v[k])) : ''}">`).join('')
-      + '<button type="button" class="btn btn-secondary btn-sm" data-del title="Remove this line">✕</button></div>';
+    return `<div class="hs-row" data-row="${kind}" style="grid-template-columns:${gridCols(kind)}">` + LISTS[kind].map(([k, label, w, isNum, type]) => k === 'bank'
+      ? `<span class="hs-bank">${bankPickHtml(`data-k="bank" data-nav`, v && v.bank)}</span>`
+      : `<input data-k="${k}" placeholder="${label}" aria-label="${label}" ${type ? `type="${type}"` : ''} ${isNum ? 'inputmode="decimal" class="hs-numin"' : ''} data-nav autocomplete="off" value="${v && v[k] != null ? esc(String(v[k])) : ''}">`).join('')
+      + (kind === 'forex' ? '<span class="hs-ghs mono" data-ghs></span>' : '')
+      + '<button type="button" class="btn btn-secondary btn-sm" data-del title="Remove this line" tabindex="-1">✕</button></div>';
+  }
+  function headHtml(kind) {
+    return `<div class="hs-row hs-rowhead" style="grid-template-columns:${gridCols(kind)}">`
+      + LISTS[kind].map(([, label, , isNum]) => `<span${isNum ? ' class="num"' : ''}>${esc(label)}</span>`).join('')
+      + (kind === 'forex' ? '<span class="num">GHS</span>' : '') + '<span></span></div>';
   }
   function addRow(kind, v) { const box = document.querySelector(`[data-list="${kind}"] .hs-rows`); box.insertAdjacentHTML('beforeend', rowHtml(kind, v)); }
-  function resetLists() { Object.keys(LISTS).forEach(k => { document.querySelector(`[data-list="${k}"] .hs-rows`).innerHTML = ''; addRow(k); }); }
+  function resetLists() {
+    Object.keys(LISTS).forEach(k => {
+      const list = document.querySelector(`[data-list="${k}"]`);
+      if (!list.querySelector('.hs-rowhead')) list.querySelector('.hs-rows').insertAdjacentHTML('beforebegin', headHtml(k));
+      list.querySelector('.hs-rows').innerHTML = ''; addRow(k);
+    });
+  }
   function readRows(kind) {
     return [...document.querySelectorAll(`[data-row="${kind}"]`)].map(row => {
       const o = {}; row.querySelectorAll('[data-k]').forEach(i => { o[i.dataset.k] = i.value.trim(); }); return o;
@@ -229,15 +244,20 @@
     });
     cash = r2(cash);
     const sum = arr => r2(arr.reduce((s, x) => s + (x.amount || 0), 0));
+    // Letters as on the paper: A cash, B cheques, C MoMo, D transfers, E foreign, F pledges.
     const parts = {
-      A: cash, B: sum(c.momo), C: sum(c.cheques), D: sum(c.transfers),
+      A: cash, B: sum(c.cheques), C: sum(c.momo), D: sum(c.transfers),
       E: r2(c.forex.reduce((s, f) => s + r2((f.amount || 0) * (rateOf(f.currency, f.rate) || 0)), 0)), F: sum(c.ious),
     };
     const total = r2(Object.values(parts).reduce((a, b) => a + b, 0));
     $('sCashTotal').textContent = gh(cash);
-    const names = { A: 'Cash', B: 'MoMo', C: 'Cheques', D: 'Transfers', E: 'Foreign (GHS)', F: 'Pledges' };
-    $('sSum').innerHTML = Object.entries(parts).map(([k, v]) => `<div><span>${k} · ${names[k]}</span><b class="mono">${gh(v)}</b></div>`).join('')
-      + `<div class="hs-sum-total"><span>Typed total</span><b class="mono">${gh(total)}</b></div>`;
+    Object.entries(parts).forEach(([k, v]) => { $('sPart' + k).textContent = gh(v); });
+    $('sTyped').textContent = gh(total);
+    document.querySelectorAll('[data-row="forex"]').forEach(row => {
+      const cur = String(row.querySelector('[data-k="currency"]').value || '').trim().toUpperCase();
+      const amt = num(row.querySelector('[data-k="amount"]').value), rate = rateOf(cur, num(row.querySelector('[data-k="rate"]').value));
+      row.querySelector('[data-ghs]').textContent = amt && rate ? gh(r2(amt * rate)) : '';
+    });
     const wc = $('sWrittenCash').value.trim(), wt = $('sWrittenTotal').value.trim();
     const cashOk = !wc || Math.abs(num(wc) - cash) <= 0.01;
     const totOk = wt && Math.abs(num(wt) - total) <= 0.01;
@@ -251,7 +271,7 @@
     return { c, cash, total };
   }
   function clearForm(keepNo) {
-    if (!keepNo) { $('sNo').value = ''; S.sheet = null; $('sWhich').textContent = 'Type the number printed on the sheet.'; $('sSeedWrap').style.display = 'none'; }
+    if (!keepNo) { $('sNo').value = ''; S.sheet = null; $('sWhich').textContent = 'Type the number printed on the sheet (top right on the paper).'; $('sSeedWrap').style.display = 'none'; fillBand(); }
     document.querySelectorAll('[data-denom]').forEach(i => { i.value = ''; });
     resetLists();
     $('sWrittenCash').value = ''; $('sWrittenTotal').value = '';
@@ -260,17 +280,28 @@
     compute();
   }
 
+  // The dark band across the top, as on the paper.
+  function fillBand(s) {
+    const d = day(), ev = data && data.events.find(e => e.id === d.eventId);
+    $('sBandEvent').textContent = ev ? ev.name : '—';
+    $('sBandDate').textContent = d.date ? fmtDate(d.date) : '—';
+    $('sBandBasket').textContent = s ? (s.entryKey && s.entryKey.startsWith('seed.') ? 'Seed — ' + s.entryKey.slice(5) : s.label) : '—';
+    $('sBandSvc').textContent = s ? (s.service === 'joint' ? 'Joint' : s.service) : '—';
+  }
+
   // ---- Choosing a sheet --------------------------------------------------------
   async function pickSheet() {
     const no = Math.floor(num($('sNo').value));
     if (!no) return;
     let s;
     try { s = await api(`/fundraising/sheets/${no}?` + q()); }
-    catch (e) { $('sWhich').innerHTML = `<span class="hs-badmsg">${esc(e.message)}</span>`; S.sheet = null; return; }
+    catch (e) { $('sWhich').innerHTML = `<span class="hs-badmsg">${esc(e.message)}</span>`; S.sheet = null; fillBand(); return; }
     S.sheet = s;
     clearForm(true);
-    $('sWhich').innerHTML = `<b>${esc(s.entryKey && s.entryKey.startsWith('seed.') ? 'Seed — ' + s.entryKey.slice(5) : s.label)}</b> · ${esc(svc(s.service))}`
-      + (s.entered ? ` · <span class="badge badge-done">entered by ${esc((s.sheet && s.sheet.enteredBy) || '')}</span> <span class="sub">— change it and save to replace</span>` : '');
+    fillBand(s);
+    $('sWhich').innerHTML = s.entered
+      ? `<span class="badge badge-done">entered by ${esc((s.sheet && s.sheet.enteredBy) || '')}</span> <span class="sub">— change it and save to replace</span>`
+      : `<span class="sub">Type the sheet as it reads: cash pieces down, cash total, then each list; the basket total last.</span>`;
     $('sSeedWrap').style.display = s.key === 'seed' ? '' : 'none';
     if (s.key === 'seed') {
       $('sSeedBody').innerHTML = '<option value="">— choose —</option>' + s.seedCategories.map(c => `<option>${esc(c)}</option>`).join('');
@@ -430,9 +461,24 @@
     if (e.key !== 'Enter' || !e.target.matches('[data-nav]') || e.target.id === 'sNo') return;
     e.preventDefault();
     if (e.ctrlKey || e.metaKey) return save();
-    const all = [...entry.querySelectorAll('[data-nav]')].filter(x => x.offsetParent !== null && !x.disabled);
-    const i = all.indexOf(e.target);
     if (e.target.id === 'sWrittenTotal') return save();
+    // Reading order of the paper; the basket total (top right) is typed last.
+    const all = [...entry.querySelectorAll('[data-nav]')].filter(x => x.offsetParent !== null && !x.disabled && x.id !== 'sWrittenTotal');
+    all.push($('sWrittenTotal'));
+    const row = e.target.closest('.hs-row');
+    if (row) {
+      const fields = [...row.querySelectorAll('[data-nav]')].filter(x => x.offsetParent !== null);
+      const empty = fields.every(x => !String(x.value || '').trim());
+      const list = row.closest('[data-list]');
+      // Enter on an empty line: that list is done — go to the next list (or the total).
+      if (empty) { const after = all.find(x => !list.contains(x) && (list.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING)); return (after || $('sWrittenTotal')).focus(); }
+      // Enter on the last box of the last line: open a fresh line for the next one.
+      if (e.target === fields[fields.length - 1] && row === list.querySelector('.hs-rows').lastElementChild) {
+        addRow(list.dataset.list);
+        return list.querySelector('.hs-rows').lastElementChild.querySelector('input, select').focus();
+      }
+    }
+    const i = all.indexOf(e.target);
     if (all[i + 1]) all[i + 1].focus();
   });
   $('sOverlay').addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); save(); } });

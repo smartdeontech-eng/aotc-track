@@ -251,6 +251,20 @@ savings & loans). An old value not on the list opens as Other with its text. Lis
 on the BoG register, Nov 2026 (Société Générale Ghana kept: its sale to Attijariwafa awaited approval in
 Oct 2026 — rename it here when the bank rebrands).
 
+Same release — **sheet entry mirrors the paper**. Gideon: "the sheet entering should be same as the sheet
+itself in terms of format"; he chose to reletter so letters follow the page. Paper (`basketSheetPage` in
+utils/fundraisingPdf.js): This-basket box and section titles now **A Cash, B Cheques, C MoMo, D Transfers,
+E Foreign, F Pledges** (cheques table is full width just under the cash, so it is B); the day summary's
+columns follow the same order. Screen (`#sEntry .hs-paper` in fundraising.html): navy band with
+`sBandBasket/Event/Date/Svc` and the sheet-no. box; `.hs-top` = cash table (A cash total written at the
+bottom, counted under it) + `.hs-basket` (sPartA–F, sTyped, BASKET TOTAL `sWrittenTotal`, sCheck); then
+cheques full width, `.hs-two` MoMo|Transfers, Foreign|Pledges. `LISTS` in page-fundraising-sheets.js holds
+each list's columns in paper order with fr widths (rows are CSS grids, `headHtml` draws the column
+headings); cheques gained `drawer` (stored by `normCheques` only when typed); forex rows show a worked-out
+GHS cell. Enter: reading order with the basket total forced last; Enter on an empty line jumps to the next
+list; Enter on the last box of the last line adds a line. Phone: one column in the same order, two boxes
+per line. Old `.hs-cols/.hs-totals/.hs-sum` CSS is now unused.
+
 ### Built 19 Nov 2026 — 0.4.31: the fundraising day is set up first (as Sunday attendance)
 
 Owner, 19 Nov 2026 evening: "set up the day for the main harvest or whatever item, then everything follows."
@@ -848,7 +862,8 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 Release with the usual order. Check: Fundraising → Inflow entries is full width, no sideways scroll on a
 laptop or phone; each day shows Open, its next step and More ▾. In a sheet, the cheque and transfer Bank
-boxes are dropdowns; Other shows a box to type in.
+boxes are dropdowns; Other shows a box to type in. Print a sheet and type it: the screen reads like the
+paper (B Cheques, C MoMo on both) and Enter walks it top to bottom.
 
 ### 0.4.31 the day is set up first — deployed (checked 21 Nov 2026: healthz 0.4.31, green live)
 

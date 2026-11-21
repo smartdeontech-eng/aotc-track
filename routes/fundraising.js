@@ -197,11 +197,16 @@ function setCatAmount(categories, key, value) {
 // the bank statement.
 function normCheques(list) {
   return (Array.isArray(list) ? list : [])
-    .map(c => ({
-      number: String(c.number || '').trim().slice(0, 40),
-      bank: String(c.bank || '').trim().slice(0, 80),
-      amount: r2(n(c.amount)),
-    }))
+    .map(c => {
+      // Drawer = the name on the cheque, as the paper sheet asks (kept only when given).
+      const drawer = String(c.drawer || '').trim().slice(0, 80);
+      return {
+        number: String(c.number || '').trim().slice(0, 40),
+        bank: String(c.bank || '').trim().slice(0, 80),
+        ...(drawer ? { drawer } : {}),
+        amount: r2(n(c.amount)),
+      };
+    })
     .filter(c => c.amount > 0 || c.number);
 }
 // Bank transfers: bank + transaction reference + amount.
