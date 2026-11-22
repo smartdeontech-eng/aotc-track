@@ -182,11 +182,35 @@
     const m = b.methods || {};
     $('sMethods').innerHTML = '<b>By payment type</b>' + [['Cash', m.cash], ['MoMo', m.momo], ['Cheques', m.cheque], ['Transfers', m.transfer], ['Foreign (in GHS)', m.forex], ['Pledges (IOU)', m.ious]]
       .map(([k, v]) => `<span><span class="sub">${k}</span> <b class="mono">${gh(v || 0)}</b></span>`).join('');
+    renderBreakdown(b);
     $('sSubmitWrap').innerHTML = b.locked ? '<span class="badge badge-info">signed off — locked</span>'
       : b.status === 'submitted' ? '<span class="badge badge-info">submitted · awaiting Accounts Clerk</span>'
         : left ? `<span class="sub">${left} sheet${left === 1 ? '' : 's'} still to enter before the day is submitted</span>`
           : (canManage() ? '<button type="button" class="btn btn-primary" id="sSubmit2">Submit the day for verification</button>' : '');
     if ($('sSubmit2')) $('sSubmit2').onclick = submitDay;
+  }
+
+  // One table, a heading per kind; every item says its sheet, basket and service.
+  function renderBreakdown(b) {
+    const its = b.items || [];
+    $('sBreakdownWrap').style.display = its.length ? '' : 'none';
+    if (!its.length) return;
+    const KINDS = [['cheque', 'B · Cheques', 'Cheque no.', 'Drawer / name', true], ['momo', 'C · MoMo', 'Transaction ID', 'Name or number', false],
+      ['transfer', 'D · Bank transfers', 'Reference', '', true], ['forex', 'E · Foreign notes', 'Currency, amount @ rate', '', false], ['iou', 'F · Pledges (IOU)', 'Due', 'Name · phone', false]];
+    const many = b.services.length > 1;
+    $('sBreakdown').innerHTML = '<tbody>' + KINDS.map(([type, title, refH, partyH, bank]) => {
+      const list = its.filter(i => i.type === type);
+      if (!list.length) return '';
+      const tot = list.reduce((s2, i) => s2 + (Number(i.amount) || 0), 0);
+      let last = null;
+      return `<tr class="hs-bdkind"><th colspan="6">${esc(title)} <span class="sub">— ${list.length} item${list.length === 1 ? '' : 's'}</span></th><th class="num mono">${gh(tot)}</th></tr>`
+        + `<tr class="hs-headrow"><th>Sheet</th><th>Basket</th><th>Service</th><th>${esc(refH)}</th><th>${esc(partyH)}</th><th>${bank ? 'Bank' : ''}</th><th class="num">Amount (GHS)</th></tr>`
+        + list.map(i => {
+          const brk = many && last !== null && last !== i.service; last = i.service;
+          return `<tr${brk ? ' class="hs-bdsvc"' : ''}><td class="mono"><b>${i.no ? pad2(i.no) : '—'}</b></td><td>${esc(i.basket)}</td><td>${esc(svc(i.service))}</td>`
+            + `<td>${esc(i.ref || '')}</td><td>${esc(i.party || '')}</td><td>${esc(i.bank || '')}</td><td class="num mono">${gh(i.amount)}</td></tr>`;
+        }).join('');
+    }).join('') + '</tbody>';
   }
 
   const short = l => l.replace('Chairpersons & Co-chairpersons', 'Chairpersons').replace('Gratitude & Thanksgiving', 'Gratitude').replace('Seed contributions', 'Seed').replace('Seed — ', 'Seed: ').replace('Harvest Week — ', '');

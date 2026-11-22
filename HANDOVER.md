@@ -228,6 +228,20 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.37: breakdown by basket (summary PDF + tally)
+
+Gideon: for the breakdowns (cheques etc.), one table with headings, each line telling which basket
+(day-born, Gratitude, Chairpersons…) and which service it came from. `sheetItems(plan, entries)` in
+routes/fundraising.js lists every cheque / MoMo / transfer / foreign note / pledge with {type, no,
+basket, service, ref, party, bank, amount}: from each sheet's catMethods (seed bodies by name), MoMo
+lines from the sheet record (`sheet.momo`, else one "(no details typed)" line from bd.momo), plus
+service-level items as "Not on a sheet" (methodsDirect cheques/transfers, uncategorised forex and IOUs).
+Sorted by kind, then service, then sheet. GET /sheets returns it as `items`; the tally renders
+`#sBreakdown` (renderBreakdown). Day summary PDF: page 1 grouped by service with a subtotal row each;
+page 2 keeps the cash handover with the cheque count/total line; page 3+ "BREAKDOWN BY BASKET" (paginates).
+Same release: Gideon — "if anything was not entered, don't let it come there at all": the summary PDF drops
+unentered sheets (`rows.filter(r => r.bd)`) and the "not final" warning line.
+
 ### Built 22 Nov 2026 — 0.4.36: Add a sheet on a day set up by its figures
 
 Live on harvest day, "+ Add a sheet" said "Set up the day first" on an already running day: POST
@@ -905,7 +919,9 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.36 Add-a-sheet set-up fix — built, not deployed (22 Nov 2026)
+### 0.4.37 breakdown by basket — built, not deployed (22 Nov 2026)
+
+### 0.4.36 Add-a-sheet set-up fix — deployed (checked 22 Nov 2026: healthz 0.4.36)
 
 ### 0.4.35 + Add a sheet — deployed (checked 22 Nov 2026: healthz 0.4.35)
 

@@ -992,6 +992,48 @@ function recordFor(e, p) {
     basketTotal: r2(keys.reduce((t, k) => t + amt(k), 0)) };
 }
 
+// Every non-cash item of the day — cheques, MoMo, transfers, foreign notes and
+// pledges — each with the sheet, basket and service it came from (22 Nov 2026,
+// per Gideon: "we should be able to tell where this is coming from"). Used by
+// the tally screen and the day summary PDF. Items typed outside any sheet
+// (service-level figures) are listed as "Not on a sheet".
+const ITEM_TYPES = ['cheque', 'momo', 'transfer', 'forex', 'iou'];
+function sheetItems(plan, entries) {
+  const out = [];
+  const push = (type, p, basket, x) => out.push({ type, no: p ? p.no : null, basket, service: p ? p.service : x.service, ...x });
+  plan.forEach(p => {
+    const e = entries.find(x => x.service === p.service);
+    const hit = recordFor(e, p);
+    if (!hit) return;
+    const cm = e.catMethods || {};
+    const keys = p.key === 'seed' ? Object.keys(cm).filter(k => k.startsWith('seed.')) : [hit.key];
+    const sheetMomo = ((hit.sheet || {}).momo || []).filter(m => m.amount > 0);
+    keys.forEach(k => {
+      const bd = cm[k];
+      if (!bd) return;
+      const basket = k.startsWith('seed.') ? catLabel(k) : p.label;
+      (bd.cheques || []).forEach(q => push('cheque', p, basket, { ref: q.number, party: q.drawer || '', bank: q.bank || '', amount: r2(q.amount) }));
+      if (!sheetMomo.length && n(bd.momo) > 0) push('momo', p, basket, { ref: '', party: '(no details typed)', bank: '', amount: r2(bd.momo) });
+      (bd.transfers || []).forEach(t => push('transfer', p, basket, { ref: t.reference || '', party: '', bank: t.bank || '', amount: r2(t.amount) }));
+      (bd.forex || []).forEach(f => push('forex', p, basket, { ref: `${f.currency} ${n(f.amount).toLocaleString('en-GB', { minimumFractionDigits: 2 })} @ ${n(f.rate).toFixed(2)}`, party: '', bank: '', amount: r2(f.ghs) }));
+      (bd.ious || []).forEach(i => push('iou', p, basket, { ref: i.dueDate ? 'by ' + i.dueDate : '', party: [i.name, i.contact].filter(Boolean).join(' · '), bank: '', amount: r2(i.amount) }));
+    });
+    const momoBasket = keys.length === 1 && keys[0].startsWith('seed.') ? catLabel(keys[0]) : p.label;
+    sheetMomo.forEach(m => push('momo', p, momoBasket, { ref: m.reference || '', party: m.name || '', bank: '', amount: r2(m.amount) }));
+  });
+  entries.forEach(e => {
+    const md = e.methodsDirect || {};
+    (md.cheques || []).forEach(q => push('cheque', null, 'Not on a sheet', { service: e.service, ref: q.number, party: q.drawer || '', bank: q.bank || '', amount: r2(q.amount) }));
+    (md.transfers || []).forEach(t => push('transfer', null, 'Not on a sheet', { service: e.service, ref: t.reference || '', party: '', bank: t.bank || '', amount: r2(t.amount) }));
+    (e.forex || []).filter(f => !f.category).forEach(f => push('forex', null, 'Not on a sheet', { service: e.service, ref: `${f.currency} ${n(f.amount).toFixed(2)} @ ${n(f.rate).toFixed(2)}`, party: '', bank: '', amount: r2(f.ghs) }));
+    db.findAll('fundraising_ious', x => x.entryId === e.id && !x.category && x.status !== 'cancelled')
+      .forEach(i => push('iou', null, 'Not on a sheet', { service: e.service, ref: i.dueDate ? 'by ' + i.dueDate : '', party: [i.name, i.contact].filter(Boolean).join(' · '), bank: '', amount: r2(i.amount) }));
+  });
+  const svcOrder = { joint: 0, '1st': 1, '2nd': 2 };
+  return out.sort((a, b) => ITEM_TYPES.indexOf(a.type) - ITEM_TYPES.indexOf(b.type)
+    || (svcOrder[a.service] - svcOrder[b.service]) || ((a.no || 999) - (b.no || 999)));
+}
+
 router.get('/sheets', requireAuth, (req, res) => {
   if (!canView(req)) return res.status(403).json({ error: 'This module belongs to the Harvest Committee.' });
   const ev = db.findById('fundraising_events', Number(req.query.eventId));
@@ -1034,6 +1076,7 @@ router.get('/sheets', requireAuth, (req, res) => {
     day: rec ? { id: rec.id, shape: rec.shape, target: rec.target || null, setBy: rec.setBy, setAt: rec.setAt } : null,
     setUp: !!rec || entries.length > 0,
     event: { id: ev.id, name: ev.name, year: ev.year, target: ev.target || null, raised }, date, services, rows, methods,
+    items: sheetItems(plan, entries),
     seedCategories: seedCats(ev.year), denominations: DENOMS,
     entered: rows.filter(r => r.status === 'entered').length, total: rows.length,
     dayTotal, cashCount, cashCounted: cashCountTotal(cashCount), status,
@@ -1333,7 +1376,7 @@ router.get('/day-summary.pdf', requireAuth, async (req, res) => {
     return { ...p, label: hit && hit.key.startsWith('seed.') ? catLabel(hit.key) : p.label,
       bd: bd || (formOnly ? { total: hit.basketTotal, formOnly: true } : null), sheet: hit ? hit.sheet : null };
   });
-  const buf = await buildDaySummaryPdf({ event: ev, date, rows, entries, denoms: DENOMS });
+  const buf = await buildDaySummaryPdf({ event: ev, date, rows, entries, denoms: DENOMS, items: sheetItems(plan, entries) });
   logActivity({ ...actor(req), action: 'Printed harvest day summary', entityType: 'fundraising', entityId: ev.id, entityLabel: `${ev.name} ${date}` });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `inline; filename="Harvest_Day_Summary_${ev.name.replace(/\s+/g, '_')}_${date}.pdf"`);

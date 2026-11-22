@@ -2021,3 +2021,11 @@ label.hs-corr input[type="checkbox"] { width: auto; height: auto; margin: 0; fle
 .hs-warnmsg { display: inline-block; color: #8a4b00; background: rgba(224, 138, 30, .14); border: 1px solid rgba(224, 138, 30, .5); border-radius: 8px; padding: 6px 10px; }
 .hs-tile.hs-addtile { border-style: dashed; color: var(--primary); background: transparent; }
 .hs-tile.hs-addtile .hs-no { font-size: 18px; }
+
+/* Tally: breakdown by basket (22 Nov 2026) */
+.hs-bdtitle { margin: 16px 0 6px; }
+.hs-breakdown .hs-bdkind th { background: var(--primary-dark, #1b2a5a); color: #fff; text-align: left; padding: 6px 8px; }
+.hs-breakdown .hs-bdkind th.num { text-align: right; }
+.hs-breakdown .hs-bdkind .sub { color: #c9d1e6; font-weight: 500; }
+.hs-breakdown tr.hs-bdsvc td { border-top: 2px solid var(--primary); }
+.hs-breakdown td { font-size: 13px; }

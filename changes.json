@@ -1,5 +1,9 @@
 [
   [
+    "0.4.37",
+    "Harvest day summary and tally: a Breakdown by basket — every cheque, MoMo, bank transfer, foreign note and pledge in one table, under a heading for each kind with its count and total, and each line showing the sheet number, the basket (Gratitude, Tuesday-borns, Chairpersons…) and the service it came from. The day summary's first page is now grouped 1st service / 2nd service with a subtotal for each. Sheets not entered are left off the day summary altogether."
+  ],
+  [
     "0.4.36",
     "Harvest sheets: \"+ Add a sheet\" no longer asks to set up a day that already has figures on it — such a day is treated as set up, as everywhere else."
   ],
