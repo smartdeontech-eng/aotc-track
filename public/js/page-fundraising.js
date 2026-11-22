@@ -209,6 +209,27 @@ document.addEventListener('click', e => {
   }
 });
 
+// Target colours (22 Nov 2026, per Gideon): an event's raised figure is green
+// once its target is met and red while it isn't. A switch beside the Events
+// heading (and on the tally) turns the colours off; the choice is kept on this
+// device. Shared with page-fundraising-sheets.js.
+const TARGET_COLOURS_KEY = 'aotc.targetColours';
+function targetColoursOn() { try { return localStorage.getItem(TARGET_COLOURS_KEY) !== 'off'; } catch (e) { return true; } }
+function targetMark(raised, target, html) {
+  if (!target || !targetColoursOn()) return html;
+  return `<span class="tg-mark ${raised >= target ? 'tg-hit' : 'tg-miss'}" title="${raised >= target ? 'Target met' : 'Target not yet met'}">${html}</span>`;
+}
+function targetSwitchHtml() {
+  return `<label class="tg-switch" title="Green when the target is met, red when it isn't"><input type="checkbox" data-tg-toggle${targetColoursOn() ? ' checked' : ''}> Target colours</label>`;
+}
+document.addEventListener('change', e => {
+  if (!e.target.matches || !e.target.matches('[data-tg-toggle]')) return;
+  try { localStorage.setItem(TARGET_COLOURS_KEY, e.target.checked ? 'on' : 'off'); } catch (err) { /* storage off */ }
+  document.querySelectorAll('[data-tg-toggle]').forEach(x => { x.checked = e.target.checked; });
+  load();
+  if (typeof window.refreshHarvestTally === 'function') window.refreshHarvestTally();
+});
+
 async function load() {
   data = await api('/fundraising/overview');
   document.getElementById('countLabel').textContent = `${data.year} fundraising year`;
@@ -218,10 +239,11 @@ async function load() {
   document.getElementById('statNet').textContent = gh(data.totalRaised - data.totalSpent);
   document.getElementById('statIou').textContent = gh(data.iouOutstanding || 0);
 
+  document.getElementById('tgSwitchEvents').innerHTML = targetSwitchHtml();
   document.getElementById('eventRows').innerHTML = data.events.map(ev => `<tr>
     <td><b>${esc(ev.name)}</b></td>
     <td class="mono">${ev.target ? gh(ev.target) : '—'}</td>
-    <td class="mono">${gh(ev.raised)}${ev.target ? ` <span class="sub">(${Math.round(ev.raised / ev.target * 100)}%)</span>` : ''}</td>
+    <td class="mono">${targetMark(ev.raised, ev.target, `${gh(ev.raised)}${ev.target ? ` <span class="sub">(${Math.round(ev.raised / ev.target * 100)}%)</span>` : ''}`)}</td>
     <td class="mono">${gh(ev.spent)}</td>
     <td class="mono"><b>${gh(ev.net)}</b></td>
     <td style="white-space:nowrap;">${canManage() ? `<button class="btn btn-secondary btn-sm" onclick="editEvent(${ev.id}, '${esc(ev.name).replace(/'/g, "\\'")}', ${ev.target || 'null'})">Edit</button> <button class="btn btn-danger btn-sm" onclick="delEvent(${ev.id})">Del</button>` : ''}</td>

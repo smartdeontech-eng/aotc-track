@@ -745,21 +745,32 @@ function buildStatementPdf({ year, events, entries, expenses, ious, annualTarget
     doc.moveDown(0.8);
 
     const pad = 5, rowH = 20;
+    // Rows grow to fit their tallest cell (long names and descriptions wrap
+    // inside the row), and a column is right-aligned only when it holds
+    // amounts or numbers; text columns read from the left (22 Nov 2026).
+    const isNumCell = c => /^(GHS\s|—$|-?[\d,]+(\.\d+)?$)/.test(String(c).trim());
     function tableRows(widths, rows, opts = {}) {
+      const body = rows.filter(r => !(r.bold && r.shade) || rows.indexOf(r) > 0);
+      const numCol = widths.map((_, i) => {
+        const vals = rows.slice(1).map(r => r.cells[i]).filter(c => c !== '' && c != null);
+        return i > 0 && vals.length > 0 && vals.every(isNumCell);
+      });
       rows.forEach(r => {
-        if (doc.y + rowH > A4.height - M.bottom) doc.addPage();
+        const font = r.bold ? 'Times-Bold' : 'Times-Roman';
+        const h = Math.max(rowH, ...r.cells.map((c, i) => doc.font(font).fontSize(9.5).heightOfString(String(c), { width: widths[i] - pad * 2 }) + 10));
+        if (doc.y + h > A4.height - M.bottom) doc.addPage();
         // .text() advances doc.y, so pin every cell of the row to rowY and
         // only move down once per row — otherwise the cells staircase.
         const rowY = doc.y;
         let x = M.left;
-        if (r.shade) { doc.rect(M.left, rowY, widths.reduce((a, b) => a + b, 0), rowH).fill('#EEF1F7'); doc.fillColor('#000'); }
+        if (r.shade) { doc.rect(M.left, rowY, widths.reduce((a, b) => a + b, 0), h).fill('#EEF1F7'); doc.fillColor('#000'); }
         r.cells.forEach((c, i) => {
-          doc.rect(x, rowY, widths[i], rowH).lineWidth(0.5).stroke('#444');
-          doc.font(r.bold ? 'Times-Bold' : 'Times-Roman').fontSize(9.5).fillColor('#000')
-            .text(String(c), x + pad, rowY + 5, { width: widths[i] - pad * 2, align: i === 0 ? 'left' : 'right', lineBreak: false });
+          doc.rect(x, rowY, widths[i], h).lineWidth(0.5).stroke('#444');
+          doc.font(font).fontSize(9.5).fillColor('#000')
+            .text(String(c), x + pad, rowY + 5, { width: widths[i] - pad * 2, align: numCol[i] ? 'right' : 'left' });
           x += widths[i];
         });
-        doc.y = rowY + rowH;
+        doc.y = rowY + h;
       });
       doc.y += 10;
     }
@@ -767,7 +778,7 @@ function buildStatementPdf({ year, events, entries, expenses, ious, annualTarget
     // Summary table
     doc.font('Times-Bold').fontSize(11).text('Summary by Event', M.left);
     doc.moveDown(0.2);
-    const w1 = [150, 90, 90, 85, 80];
+    const w1 = [125, 90, 95, 90, 95];
     tableRows(w1, [
       { cells: ['Event', 'Target', 'Raised', 'Expenses', 'Net'], bold: true, shade: true },
       ...events.map(ev => ({ cells: [ev.name, ev.target ? money(ev.target) : '—', money(ev.raised), money(ev.spent), money(ev.net)] })),
@@ -868,7 +879,7 @@ function buildStatementPdf({ year, events, entries, expenses, ious, annualTarget
     if ((ious || []).length) {
       doc.font('Times-Bold').fontSize(11).text('IOU register (pledges)', M.left);
       doc.moveDown(0.2);
-      const w4 = [105, 95, 80, 65, 70, 80];
+      const w4 = [110, 85, 80, 55, 65, 100];
       const sorted = ious.slice().sort((a, b) => (a.status === b.status ? (a.dueDate || '').localeCompare(b.dueDate || '') : a.status === 'paid' ? 1 : -1));
       tableRows(w4, [
         { cells: ['Name', 'Basket', 'Amount', 'Due date', 'Status', 'Event / day'], bold: true, shade: true },
@@ -886,7 +897,7 @@ function buildStatementPdf({ year, events, entries, expenses, ious, annualTarget
     if (expenses.length) {
       doc.font('Times-Bold').fontSize(11).text('Outflows (expenses)', M.left);
       doc.moveDown(0.2);
-      const w3 = [140, 100, 175, 80];
+      const w3 = [110, 60, 230, 95];
       tableRows(w3, [
         { cells: ['Event', 'Date', 'Description', 'Amount'], bold: true, shade: true },
         ...expenses.map(x => ({ cells: [x.eventName, toLocalDate(x.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), x.description, money(x.amount)] })),

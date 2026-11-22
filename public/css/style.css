@@ -2029,3 +2029,15 @@ label.hs-corr input[type="checkbox"] { width: auto; height: auto; margin: 0; fle
 .hs-breakdown .hs-bdkind .sub { color: #c9d1e6; font-weight: 500; }
 .hs-breakdown tr.hs-bdsvc td { border-top: 2px solid var(--primary); }
 .hs-breakdown td { font-size: 13px; }
+
+/* Target colours (22 Nov 2026) */
+.tg-mark { display: inline-block; padding: 2px 8px; border-radius: 6px; }
+.tg-mark.tg-hit, .hs-kpi.tg-hit { background: rgba(30, 140, 70, .14); color: #12612f; }
+.tg-mark.tg-miss, .hs-kpi.tg-miss { background: rgba(200, 40, 40, .12); color: #9b1c1c; }
+.hs-kpi.tg-hit { border-color: rgba(30, 140, 70, .55); }
+.hs-kpi.tg-miss { border-color: rgba(200, 40, 40, .5); }
+.hs-kpi.tg-hit span, .hs-kpi.tg-miss span { color: inherit; opacity: .85; }
+.tg-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; white-space: nowrap; font-weight: 500; }
+.tg-switch input { width: 16px; height: 16px; margin: 0; }
+.hs-kpi-switch { grid-column: 1 / -1; order: -1; display: flex; justify-content: flex-end; margin-bottom: -2px; }
+.hs-kpi b { display: block; white-space: normal; overflow-wrap: anywhere; }

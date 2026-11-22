@@ -160,10 +160,11 @@
     $('sKpis').innerHTML = [
       ['Day total', `GHS ${gh(b.dayTotal)}`],
       ['Sheets entered', `${b.entered} of ${b.total}`],
-      [`${ev.name} raised`, `GHS ${gh(ev.raised)}${ev.target ? ` · ${Math.round(ev.raised / ev.target * 100)}%` : ''}`],
-      ['Day target', b.day && b.day.target ? `GHS ${gh(b.day.target)} · ${Math.round(b.dayTotal / b.day.target * 100)}%` : '—'],
+      [`${ev.name} raised`, `GHS ${gh(ev.raised)}${ev.target ? ` · ${Math.round(ev.raised / ev.target * 100)}%` : ''}`, ev.target ? (ev.raised >= ev.target ? 'tg-hit' : 'tg-miss') : ''],
+      ['Day target', b.day && b.day.target ? `GHS ${gh(b.day.target)} · ${Math.round(b.dayTotal / b.day.target * 100)}%` : '—', b.day && b.day.target ? (b.dayTotal >= b.day.target ? 'tg-hit' : 'tg-miss') : ''],
       [`${ev.name} target`, ev.target ? `GHS ${gh(ev.target)}` : '—'],
-    ].map(([k, v]) => `<div class="hs-kpi"><span>${esc(k)}</span><b class="mono">${v}</b></div>`).join('');
+    ].map(([k, v, cls]) => `<div class="hs-kpi${cls && targetColoursOn() ? ' ' + cls : ''}"><span>${esc(k)}</span><b class="mono">${v}</b></div>`).join('')
+      + `<div class="hs-kpi-switch">${targetSwitchHtml()}</div>`;
     // One line per basket, a column per service.
     const svcs = b.services;
     const byKey = new Map();
@@ -566,5 +567,6 @@
     if (all[i + 1]) all[i + 1].focus();
   });
   $('sOverlay').addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); save(); } });
+  window.refreshHarvestTally = () => { if (S.board) renderTally(); };
   window.openHarvestSheets = open;
 })();

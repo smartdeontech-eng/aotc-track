@@ -228,6 +228,16 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.39: statement PDF layout; target colours
+
+Statement PDF (`buildStatementPdf` → `tableRows`): rows grow to the tallest cell (heightOfString, text
+wraps), and a column is right-aligned only when all its data cells are amounts/numbers (`isNumCell`);
+widths retuned (summary, IOU register, expenses) so totals fit. Target colours: `targetMark()` /
+`targetSwitchHtml()` in page-fundraising.js (localStorage `aotc.targetColours`, default on) — Events
+table Raised cell green (`tg-hit`) at/over target, red (`tg-miss`) under; tally KPIs "<event> raised" and
+"Day target" likewise; "Target colours" checkbox beside the Events heading and above the tally KPIs (one
+setting; `window.refreshHarvestTally` re-renders the tally). `.hs-kpi b` now wraps.
+
 ### Built 22 Nov 2026 — 0.4.38: breakdown rows grow to fit
 
 On the live summary, "Standard Chartered Bank Ghana" and "ADB (Agricultural Development Bank)" wrapped
@@ -926,7 +936,9 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.38 breakdown rows fit — built, not deployed (22 Nov 2026)
+### 0.4.39 statement layout + target colours — built, not deployed (22 Nov 2026)
+
+### 0.4.38 breakdown rows fit — deployed (checked 22 Nov 2026: healthz 0.4.38)
 
 ### 0.4.37 breakdown by basket — deployed (checked 22 Nov 2026: healthz 0.4.37)
 

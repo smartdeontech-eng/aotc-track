@@ -1,5 +1,9 @@
 [
   [
+    "0.4.39",
+    "Fundraising statement PDF: long names, descriptions and totals no longer run into the next row — every row grows to fit — and only amount columns are right-aligned; names, dates and descriptions read from the left. Target colours: an event's raised figure (Events table and the tally) is green once its target is met and red while it isn't, as is the day target on the tally; a \"Target colours\" switch beside them turns the colours off on that device."
+  ],
+  [
     "0.4.38",
     "Day summary, Breakdown by basket: long bank, basket or drawer names now wrap inside their own row (the row grows to fit) instead of running into the next line; the Bank column is wider and the table lines up with its headings."
   ],
