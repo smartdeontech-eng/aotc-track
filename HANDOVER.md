@@ -228,6 +228,13 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.36: Add a sheet on a day set up by its figures
+
+Live on harvest day, "+ Add a sheet" said "Set up the day first" on an already running day: POST
+/days/sheets required a fundraising_days record, but a day with figures and no record counts as set up
+everywhere else (daySetUp). Now it creates the record (ensureDay, shape from the figures) and carries on.
+Test added.
+
 ### Built 22 Nov 2026 — 0.4.35: "+ Add a sheet" (special sheets)
 
 Gideon on harvest day: "something can always come up, so we should be able to create extra sheets and
@@ -898,7 +905,9 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.35 + Add a sheet — built, not deployed (22 Nov 2026)
+### 0.4.36 Add-a-sheet set-up fix — built, not deployed (22 Nov 2026)
+
+### 0.4.35 + Add a sheet — deployed (checked 22 Nov 2026: healthz 0.4.35)
 
 Check: Record fundraising day → Enter → "+ Add a sheet" under a service → name it → it appears as the
 next number, prints on its own, saves, and shows by name in Results and the announcement PDF.

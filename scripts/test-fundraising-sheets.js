@@ -262,6 +262,14 @@ const server = app.listen(0, async () => {
     r = await a('DELETE', `/fundraising/days/sheets/5?${q}&services=dual`);
     ok(r.status === 400, 'a regular sheet cannot be taken away');
 
+    // A day set up only by its figures (no set-up record) can still take an added sheet
+    const legacyDate = `${year}-12-20`;
+    await a('PUT', '/fundraising/entries', { eventId: ev.id, date: legacyDate, service: '1st',
+      categories: { seed: {}, gratitude: 50, chairpersons: 0, dayborn: { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 } }, methods: { cash: 50 } });
+    db.findAll('fundraising_days', d => d.date === legacyDate).forEach(d => db.remove('fundraising_days', d.id));
+    r = await a('POST', '/fundraising/days/sheets', { eventId: ev.id, date: legacyDate, name: 'Late appeal', service: '2nd' });
+    ok(r.status === 200 && r.json.no === 21, 'a day with figures but no set-up record takes an added sheet (' + r.status + ' ' + (r.json && r.json.error || '') + ')');
+
     // ---- Submit: the day reconciles because every sheet balanced on its own
     const sub = await a('POST', '/fundraising/submit-day', { eventId: ev.id, date });
     ok(sub.status === 200, 'the day submits for verification (' + (sub.json && sub.json.error || '') + ')');

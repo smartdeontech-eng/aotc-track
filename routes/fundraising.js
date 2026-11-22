@@ -878,7 +878,15 @@ router.post('/days/sheets', ...manage, (req, res) => {
   const ev = db.findById('fundraising_events', Number(req.body.eventId));
   const date = String(req.body.date || '').slice(0, 10);
   if (!ev || !date) return res.status(400).json({ error: 'Event and date are required.' });
-  const rec = dayRecord(ev.id, date);
+  let rec = dayRecord(ev.id, date);
+  // A day set up by its figures alone (no set-up record — entered before the
+  // set-up step, or via the totals form) is set up: give it its record now,
+  // in the shape its figures have (22 Nov 2026 — "+ Add a sheet" refused it).
+  if (!rec && daySetUp(ev, date)) {
+    const svcs = dayServices(ev, date);
+    ensureDay(ev, date, svcs.includes('joint') ? 'joint' : '1st', req);
+    rec = dayRecord(ev.id, date);
+  }
   if (!rec) return res.status(400).json({ error: NOT_SET_UP });
   const services = rec.shape === 'dual' ? ['1st', '2nd'] : ['joint'];
   const service = services.length === 1 ? 'joint' : String(req.body.service || '');
