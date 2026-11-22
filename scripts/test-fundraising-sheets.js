@@ -127,8 +127,8 @@ const server = app.listen(0, async () => {
     // ---- Wrong numbers
     r = await a('PUT', '/fundraising/sheets/21', { eventId: ev.id, date, services: 'dual', cashCount: { n10: 1 }, writtenTotal: 10 });
     ok(r.status === 400 && /01 to 20/.test(r.json.error), 'sheet 21 is not one of the day\'s sheets');
-    r = await a('PUT', '/fundraising/sheets/5', { eventId: ev.id, date, services: 'dual', cashCount: {}, writtenTotal: 0 });
-    ok(r.status === 400, 'an empty sheet is refused');
+    r = await a('PUT', '/fundraising/sheets/5', { eventId: ev.id, date, services: 'dual', cashCount: {}, writtenTotal: 50 });
+    ok(r.status === 400, 'an empty sheet whose paper says 50 is refused');
     r = await a('PUT', '/fundraising/sheets/5', { eventId: ev.id, date, services: 'dual', cashCount: { n5: 2 } });
     ok(r.status === 400 && /BASKET TOTAL/.test(r.json.error), 'the written basket total is required');
 
@@ -203,6 +203,28 @@ const server = app.listen(0, async () => {
       categories: { seed: {}, gratitude: 300, chairpersons: 0, dayborn: { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 } },
       methods: { cash: 300 } });
     ok(!!db.findOne('fundraising_days', d => d.date === `${year}-12-13` && d.shape === 'joint'), 'a day typed in the totals form is set up by the save');
+
+    // ---- Empty basket and removing a sheet (22 Nov 2026)
+    const dayTot = () => db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date).reduce((t, e) => t + (e.total || 0), 0);
+    r = await a('PUT', '/fundraising/sheets/18', { eventId: ev.id, date, services: 'dual', cashCount: {}, writtenTotal: '' });
+    ok(r.status === 400 && /type 0 as the BASKET TOTAL/.test(r.json.error), 'a blank sheet with no total is refused, with the way forward');
+    r = await a('PUT', '/fundraising/sheets/18', { eventId: ev.id, date, services: 'dual', cashCount: {}, writtenTotal: 0 });
+    ok(r.status === 200 && r.json.total === 0, 'an empty basket saves when the sheet total says 0 (' + (r.json && r.json.error || '') + ')');
+    let bd2 = await a("GET", `/fundraising/sheets?${q}&services=dual`);
+    const s18 = bd2.json.rows.find(x => x.no === 18);
+    ok(s18 && s18.status === 'entered', 'the empty basket shows as entered on the board (' + (s18 && s18.status) + ')');
+    const before = dayTot();
+    r = await a('PUT', '/fundraising/sheets/19', { eventId: ev.id, date, services: 'dual', cashCount: { n50: 3 }, writtenTotal: 150 });
+    ok(r.status === 200 && Math.abs(dayTot() - before - 150) < 0.01, 'a trial sheet adds GHS 150');
+    r = await a('DELETE', `/fundraising/sheets/19?${q}&services=dual`, { eventId: ev.id, date, services: 'dual' });
+    ok(r.status === 200 && r.json.removed === 150 && Math.abs(dayTot() - before) < 0.01, 'removing it takes the GHS 150 back off the day (' + (r.json && r.json.error || '') + ')');
+    bd2 = await a("GET", `/fundraising/sheets?${q}&services=dual`);
+    ok(bd2.json.rows.find(x => x.no === 19).status === 'missing', 'and the sheet shows as not entered again');
+    r = await a('DELETE', `/fundraising/sheets/19?${q}&services=dual`, { eventId: ev.id, date, services: 'dual' });
+    ok(r.status === 404, 'removing a sheet with nothing saved says so');
+    r = await a('PUT', '/fundraising/sheets/19', { eventId: ev.id, date, services: 'dual', cashCount: { n50: 3 }, writtenTotal: 150 });
+    ok(r.status === 200, 'the removed sheet can be typed again without a "replace" question');
+    await a('DELETE', `/fundraising/sheets/19?${q}&services=dual`, { eventId: ev.id, date, services: 'dual' });
 
     // ---- Submit: the day reconciles because every sheet balanced on its own
     const sub = await a('POST', '/fundraising/submit-day', { eventId: ev.id, date });

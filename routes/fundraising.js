@@ -916,7 +916,7 @@ router.get('/sheets', requireAuth, (req, res) => {
     if (!hit) return { ...p, status: 'missing' };
     const s = hit.sheet || {};
     const bd = hit.bd;
-    if (!bd && !(hit.basketTotal > 0)) return { ...p, status: s.photoId ? 'photo' : 'missing', photoId: s.photoId || null, entryKey: hit.key };
+    if (!bd && !(hit.basketTotal > 0) && !s.empty) return { ...p, status: s.photoId ? 'photo' : 'missing', photoId: s.photoId || null, entryKey: hit.key };
     const seedMany = p.key === 'seed' && Math.abs(hit.basketTotal - (bd ? bd.total : hit.amount)) > 0.005;
     return {
       ...p, status: 'entered', entryKey: hit.key, source: s.enteredBy ? 'sheet' : 'form',
@@ -974,7 +974,7 @@ router.get('/sheets/:no', requireAuth, (req, res) => {
   const bd = hit && hit.bd;
   res.json({
     ...p, seedCategories: seedCats(ev.year), rates: normRates([...((e && e.rates) || [])]),
-    entryKey: hit ? hit.key : null, entered: !!bd, sheet: hit ? hit.sheet : null,
+    entryKey: hit ? hit.key : null, entered: !!bd || !!(hit && hit.sheet && hit.sheet.empty), sheet: hit ? hit.sheet : null,
     breakdown: bd ? { cashCount: bd.cashCount, cheques: bd.cheques, transfers: bd.transfers, forex: bd.forex, ious: bd.ious, total: bd.total, cash: bd.cash } : null,
     locked: !!(e && e.status && e.status !== 'pending'),
   });
@@ -1007,7 +1007,7 @@ router.put('/sheets/:no', ...manage, (req, res) => {
   const locked = lockedError(existing, req);
   if (locked) return res.status(423).json({ error: locked });
   const already = recordFor(existing, p);
-  if (already && (already.bd || already.amount > 0) && !req.body.replace) {
+  if (already && (already.bd || already.amount > 0 || (already.sheet && already.sheet.empty)) && !req.body.replace) {
     const by = (already.sheet && already.sheet.enteredBy) || existing.enteredBy || 'someone';
     return res.status(409).json({ error: `Sheet ${String(no).padStart(2, '0')} (${p.label}) was already entered by ${by}${already.sheet && already.sheet.enteredBy ? '' : ' in the totals form'}. Open it to change it.`, already: { by, at: already.sheet && already.sheet.at } });
   }
@@ -1041,9 +1041,14 @@ router.put('/sheets/:no', ...manage, (req, res) => {
   const counted = normCatMethods({ [key]: breakdown }, [key], rates)[key];
   const total = counted ? counted.total : 0;
   const cash = counted ? counted.cash : 0;
-  if (!counted || !(total > 0)) return res.status(400).json({ error: 'Nothing on this sheet adds up to more than zero. Type the pieces and lists first.' });
   const writtenCash = req.body.writtenCash === '' || req.body.writtenCash == null ? null : r2(n(req.body.writtenCash));
   const writtenTotal = req.body.writtenTotal === '' || req.body.writtenTotal == null ? null : r2(n(req.body.writtenTotal));
+  // An empty basket is a real answer (22 Nov 2026): it is saved as GHS 0 when the
+  // sheet's own total says 0, so the board shows the sheet as in. A sheet saved
+  // by mistake is taken away with DELETE below, not by saving it blank.
+  if (!(total > 0) && writtenTotal !== 0) {
+    return res.status(400).json({ error: 'Nothing typed on this sheet adds up to more than zero. If the basket really was empty, type 0 as the BASKET TOTAL and save. To take away a sheet saved by mistake, use "Remove this sheet".', field: 'total' });
+  }
   const corrected = !!req.body.corrected;
   const note = String(req.body.note || '').trim().slice(0, 300);
   if (writtenTotal === null) return res.status(400).json({ error: 'Type the BASKET TOTAL written on the sheet — it is the check that the sheet was typed correctly.' });
@@ -1089,6 +1094,7 @@ router.put('/sheets/:no', ...manage, (req, res) => {
     no, enteredBy: who.userName, enteredById: who.userId, at: new Date().toISOString(),
     writtenCash, writtenTotal, corrected, note: corrected ? note : '', momo: momoRows,
     photoId: req.body.photoId || old.photoId || null,
+    ...(total > 0 ? {} : { empty: true }),   // the basket was empty: in, at GHS 0
   };
   built.payload.sheets = sheets;
   const rec = persistEntry(ev, built, existing);
@@ -1096,6 +1102,56 @@ router.put('/sheets/:no', ...manage, (req, res) => {
     entityLabel: `${ev.name} ${date} ${service} — ${catLabel(key)} GHS ${gh(total)}${corrected ? ` (sheet corrected: ${note})` : ''}` });
   const all = sheetsOf(ev, date);
   res.json({ ok: true, no, key, label: catLabel(key), total, cash, dayTotal: r2(all.reduce((s, e) => s + (e.total || 0), 0)) });
+});
+
+// Take a sheet off the day (22 Nov 2026) — a trial run, or a sheet typed under
+// the wrong number. Its basket goes back to "not entered" and its money leaves
+// the service's figures; everything else on the day is untouched. Same locks
+// as entering it; recorded on the trail with what was removed.
+router.delete('/sheets/:no', ...manage, (req, res) => {
+  const ev = db.findById('fundraising_events', Number(req.body.eventId || req.query.eventId));
+  const date = String(req.body.date || req.query.date || '').slice(0, 10);
+  if (!ev || !date) return res.status(400).json({ error: 'Event and date are required.' });
+  const no = Number(req.params.no);
+  const { plan } = sheetPlan(ev, date, req.body.services || req.query.services);
+  const p = plan.find(x => x.no === no);
+  if (!p) return res.status(400).json({ error: `Sheet ${no} is not one of this day's sheets.` });
+  const existing = db.findOne('fundraising_entries', e => e.eventId === ev.id && e.date === date && e.service === p.service);
+  const locked = lockedError(existing, req);
+  if (locked) return res.status(423).json({ error: locked });
+  const hit = recordFor(existing, p);
+  if (!hit || !(hit.bd || hit.amount > 0 || hit.sheet)) return res.status(404).json({ error: `Sheet ${String(no).padStart(2, '0')} has nothing saved to remove.` });
+  const key = hit.key;
+  const removed = r2(hit.bd ? (normCatMethods({ [key]: hit.bd }, [key], existing.rates || [])[key] || { total: 0 }).total : hit.amount);
+  const prev = existing;
+  const md = prev.methodsDirect || {};
+  const catMethods = JSON.parse(JSON.stringify(prev.catMethods || {}));
+  delete catMethods[key];
+  const categories = JSON.parse(JSON.stringify(prev.categories || { seed: {}, dayborn: {} }));
+  if (!categories.seed) categories.seed = {};
+  if (!categories.dayborn) categories.dayborn = {};
+  if (!categories.activities) categories.activities = {};
+  if (key !== 'seed') setCatAmount(categories, key, 0);
+  const body = {
+    date, service: p.service, categories,
+    methods: { cash: md.cash || 0, momo: md.momo || 0 },
+    cashCount: md.cashCount || {}, cheques: md.cheques || [], transfers: md.transfers || [],
+    catMethods, rates: prev.rates || [],
+    forex: (prev.forex || []).filter(f => !f.category),
+    ious: db.findAll('fundraising_ious', x => x.entryId === existing.id && x.status === 'outstanding' && !x.category)
+      .map(x => ({ name: x.name, contact: x.contact, amount: x.amount, dueDate: x.dueDate })),
+  };
+  const built = buildEntry(ev, body, existing, req, { enforceRecon: false });
+  if (built.error) return res.status(400).json({ error: built.error });
+  const sheets = { ...(prev.sheets || {}) };
+  delete sheets[key];
+  built.payload.sheets = sheets;
+  const rec = persistEntry(ev, built, existing);
+  const gh = v => v.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  logActivity({ ...built.who, action: `Removed harvest sheet ${String(no).padStart(2, '0')}`, entityType: 'fundraising', entityId: rec.id,
+    entityLabel: `${ev.name} ${date} ${p.service} — ${catLabel(key)} GHS ${gh(removed)} taken off` });
+  const all = sheetsOf(ev, date);
+  res.json({ ok: true, no, key, removed, dayTotal: r2(all.reduce((t, e) => t + (e.total || 0), 0)) });
 });
 
 // A photo of a filled sheet: kept as the record, and lets a counting table far

@@ -271,6 +271,7 @@
     return { c, cash, total };
   }
   function clearForm(keepNo) {
+    if (!keepNo) { $('sRemoveBtn').style.display = 'none'; }
     if (!keepNo) { $('sNo').value = ''; S.sheet = null; $('sWhich').textContent = 'Type the number printed on the sheet (top right on the paper).'; $('sSeedWrap').style.display = 'none'; fillBand(); }
     document.querySelectorAll('[data-denom]').forEach(i => { i.value = ''; });
     resetLists();
@@ -295,10 +296,11 @@
     if (!no) return;
     let s;
     try { s = await api(`/fundraising/sheets/${no}?` + q()); }
-    catch (e) { $('sWhich').innerHTML = `<span class="hs-badmsg">${esc(e.message)}</span>`; S.sheet = null; fillBand(); return; }
+    catch (e) { $('sWhich').innerHTML = `<span class="hs-badmsg">${esc(e.message)}</span>`; S.sheet = null; fillBand(); $('sRemoveBtn').style.display = 'none'; return; }
     S.sheet = s;
     clearForm(true);
     fillBand(s);
+    $('sRemoveBtn').style.display = s.entered && !s.locked ? '' : 'none';
     $('sWhich').innerHTML = s.entered
       ? `<span class="badge badge-done">entered by ${esc((s.sheet && s.sheet.enteredBy) || '')}</span> <span class="sub">— change it and save to replace</span>`
       : `<span class="sub">Type the sheet as it reads: cash pieces down, cash total, then each list; the basket total last.</span>`;
@@ -341,7 +343,15 @@
     const body = { ...day(), ...c, writtenCash: $('sWrittenCash').value.trim(), writtenTotal: $('sWrittenTotal').value.trim(),
       seedBody: $('sSeedBody').value, corrected: $('sCorrected').checked, note: $('sNote').value.trim(), photoId: S.photoId || undefined,
       replace: replace || (S.sheet.entered ? true : undefined) };
-    if (!body.writtenTotal) { $('sWrittenTotal').focus(); return toast('Type the BASKET TOTAL written on the sheet.', true); }
+    const typed = compute().total;
+    if (!body.writtenTotal) {
+      $('sWrittenTotal').focus();
+      return toast(typed > 0 ? 'Type the BASKET TOTAL written on the sheet.'
+        : 'Nothing is typed on this sheet. If the basket really was empty, type 0 as the BASKET TOTAL. To take away a sheet saved by mistake, use "Remove this sheet".', true);
+    }
+    // An empty basket replacing figures saved before: say so plainly first.
+    if (!(typed > 0) && num(body.writtenTotal) === 0 && S.sheet.entered
+        && !confirm(`Save sheet ${pad2(S.sheet.no)} as an EMPTY basket (GHS 0.00)?\n\nWhat was saved for it before is replaced. If it was a trial or the wrong sheet, choose Cancel and use "Remove this sheet" instead.`)) return;
     S.busy = true; $('sSaveBtn').disabled = true;
     try {
       const r = await api(`/fundraising/sheets/${S.sheet.no}`, { method: 'PUT', body });
@@ -358,6 +368,19 @@
         if (e.data && e.data.field === 'total') $('sWrittenTotal').focus();
       }
     } finally { S.busy = false; $('sSaveBtn').disabled = !!(S.board && S.board.locked); }
+  }
+  // Take a saved sheet off the day (a trial, or the wrong number typed).
+  async function removeSheet() {
+    if (!S.sheet || !S.sheet.entered) return;
+    const amt = S.sheet.breakdown ? gh(S.sheet.breakdown.total || 0) : '';
+    if (!confirm(`Remove sheet ${pad2(S.sheet.no)} (${S.sheet.label}${amt ? `, GHS ${amt}` : ''}) from this day?\n\nIts figures come off the day's total and the sheet shows as not entered, ready to be typed again. This is recorded on the trail.`)) return;
+    try {
+      const r = await api(`/fundraising/sheets/${S.sheet.no}?` + q(), { method: 'DELETE', body: day() });
+      toast(`Sheet ${pad2(r.no)} removed — GHS ${gh(r.removed)} taken off the day`);
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* storage off */ }
+      clearForm(); await refresh(); $('sNo').focus();
+      load();
+    } catch (e) { toast(e.message, true); }
   }
   async function submitDay() {
     const d = day();
@@ -445,6 +468,7 @@
   $('sNo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); pickSheet(); } });
   $('sCorrected').addEventListener('change', () => { $('sNoteWrap').style.display = $('sCorrected').checked ? '' : 'none'; if ($('sCorrected').checked) $('sNote').focus(); });
   $('sSaveBtn').onclick = () => save();
+  $('sRemoveBtn').onclick = removeSheet;
   $('sClearBtn').onclick = () => { clearForm(true); try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* */ } };
   $('sPhotoInput').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) sendPhoto(f); });
   const entry = $('sEntry');

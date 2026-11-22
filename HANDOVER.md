@@ -228,6 +228,21 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.33: empty basket and "Remove this sheet"
+
+Gideon, after trials: clearing a sheet and saving (blank or 0) was refused — "what if in real life we have
+to clear?". Two separate cases now:
+- **Empty basket** (real life): typed nothing and BASKET TOTAL 0 → saves. PUT /sheets/:no only refuses a
+  zero sheet when the written total isn't 0. Because an empty breakdown leaves no catMethods, the sheet
+  record carries `empty: true`; GET /sheets shows it `entered` (GHS 0), GET /sheets/:no says entered, and
+  the 409 already-entered guard counts it. On screen, an empty save over an entered sheet asks first.
+- **Sheet saved by mistake**: new `DELETE /api/fundraising/sheets/:no` (manage; same locks) removes the
+  basket's catMethods, zeroes its category, drops the sheet record, rebuilds via buildEntry/persistEntry
+  (as the PUT does), logs "Removed harvest sheet NN — … GHS x taken off". UI: red **Remove this sheet**
+  (`#sRemoveBtn`, shown only for an entered, unlocked sheet; confirm). Clear now says it only empties the
+  screen. Tests: test-fundraising-sheets.js +9 (empty refused without 0, saved with 0, board shows it,
+  remove takes money back off, sheet missing again, 404 when nothing, re-type without replace).
+
 ### Built 21 Nov 2026 — 0.4.32: the inflow entries list fits the page (no sideways scrolling)
 
 Gideon: "I don't like that I have to scroll." The inflow list sat beside the expenses card and each row
@@ -858,7 +873,12 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.32 inflow list fits the page — built, not deployed (21 Nov 2026)
+### 0.4.33 empty basket and Remove this sheet — built, not deployed (22 Nov 2026)
+
+Check: open a sheet you saved as a trial → Remove this sheet → its tile goes back to "—". A blank sheet
+with BASKET TOTAL 0 saves as GHS 0.00.
+
+### 0.4.32 inflow list fits the page — deployed (checked 22 Nov 2026: healthz 0.4.32, green live)
 
 Release with the usual order. Check: Fundraising → Inflow entries is full width, no sideways scroll on a
 laptop or phone; each day shows Open, its next step and More ▾. In a sheet, the cheque and transfer Bank

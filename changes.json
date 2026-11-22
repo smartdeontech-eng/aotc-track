@@ -1,5 +1,9 @@
 [
   [
+    "0.4.33",
+    "Harvest sheets: an empty basket can be recorded — type 0 as the basket total and save, and the sheet shows as in at GHS 0.00. A sheet saved by mistake (a trial, or the wrong number) is taken off with the new \"Remove this sheet\" button: its money comes off the day, it shows as not entered again, and the removal is on the trail. Clear only empties the boxes on screen."
+  ],
+  [
     "0.4.32",
     "Harvest: the inflow entries list fits the page — no more scrolling sideways. It now has the whole width (expenses are below it), the event and date share one column, and each day shows just Open, its next step (Submit, Verify or Approve) and More ▾ for the rest: Results, the announcement PDF, Edit totals, Decline, Unlock and deleting an entry. Every Bank box (cheques and bank transfers, on the harvest sheets and the totals form) is now a dropdown of the 23 banks licensed by the Bank of Ghana; choose Other to type a rural or community bank, a savings and loans company or any other. Typing a harvest sheet now looks like the sheet itself: the same dark band (basket, event, date, service, sheet no.), the cash count on the left with its cash total at the bottom, the This basket box A to F with the basket total on the right, then the cheques across the page, MoMo beside bank transfers, and foreign notes beside pledges, with the same columns (cheques now keep the drawer's name; foreign notes show their GHS). The letters now follow the page on paper and screen: B is cheques, C is MoMo. Enter goes down the sheet in reading order; Enter on an empty line moves to the next list, Enter at the end of a filled line opens a new one, and the basket total is typed last."
   ],
