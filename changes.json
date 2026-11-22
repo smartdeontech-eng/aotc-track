@@ -1,5 +1,9 @@
 [
   [
+    "0.4.34",
+    "Harvest sheets: pressing Clear on a sheet already saved now says plainly that only the screen was cleared and the sheet is still saved (with its amount), and points to Remove this sheet to take it off the day."
+  ],
+  [
     "0.4.33",
     "Harvest sheets: an empty basket can be recorded — type 0 as the basket total and save, and the sheet shows as in at GHS 0.00. A sheet saved by mistake (a trial, or the wrong number) is taken off with the new \"Remove this sheet\" button: its money comes off the day, it shows as not entered again, and the removal is on the trail. Clear only empties the boxes on screen."
   ],

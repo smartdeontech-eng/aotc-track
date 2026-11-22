@@ -228,6 +228,13 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.34: Clear on a saved sheet says what it did
+
+Gideon cleared sheet 09 (Chairpersons) and the tile still showed GHS 89,200 — Clear only empties the
+screen, by design. Now Clear on an entered sheet puts an amber note in `#sWhich` (`.hs-warnmsg`): only the
+screen was cleared, sheet NN is still saved (GHS x); press Remove this sheet to take it off, or type it
+again and save. Focus moves to Remove this sheet.
+
 ### Built 22 Nov 2026 — 0.4.33: empty basket and "Remove this sheet"
 
 Gideon, after trials: clearing a sheet and saving (blank or 0) was refused — "what if in real life we have
@@ -873,7 +880,9 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.33 empty basket and Remove this sheet — built, not deployed (22 Nov 2026)
+### 0.4.34 Clear note — built, not deployed (22 Nov 2026)
+
+### 0.4.33 empty basket and Remove this sheet — deployed (Remove button seen live, 22 Nov 2026)
 
 Check: open a sheet you saved as a trial → Remove this sheet → its tile goes back to "—". A blank sheet
 with BASKET TOTAL 0 saves as GHS 0.00.

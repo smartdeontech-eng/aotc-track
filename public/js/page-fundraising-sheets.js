@@ -469,7 +469,17 @@
   $('sCorrected').addEventListener('change', () => { $('sNoteWrap').style.display = $('sCorrected').checked ? '' : 'none'; if ($('sCorrected').checked) $('sNote').focus(); });
   $('sSaveBtn').onclick = () => save();
   $('sRemoveBtn').onclick = removeSheet;
-  $('sClearBtn').onclick = () => { clearForm(true); try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* */ } };
+  $('sClearBtn').onclick = () => {
+    clearForm(true); try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* */ }
+    // Clear empties the screen only. On a saved sheet say so where the eye is,
+    // with the two real ways forward (22 Nov 2026 — the tile kept its amount).
+    if (S.sheet && S.sheet.entered) {
+      const t = S.sheet.breakdown ? ` (GHS ${gh(S.sheet.breakdown.total || 0)})` : '';
+      $('sWhich').innerHTML = `<span class="hs-warnmsg">Only the screen was cleared — sheet ${pad2(S.sheet.no)} is still saved${t}.
+        To take it off the day, press <b>Remove this sheet</b>. To change it, type the sheet again and save.</span>`;
+      $('sRemoveBtn').focus();
+    }
+  };
   $('sPhotoInput').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) sendPhoto(f); });
   const entry = $('sEntry');
   entry.addEventListener('input', () => { compute(); saveDraft(); });
