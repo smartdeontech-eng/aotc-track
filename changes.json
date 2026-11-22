@@ -1,5 +1,9 @@
 [
   [
+    "0.4.38",
+    "Day summary, Breakdown by basket: long bank, basket or drawer names now wrap inside their own row (the row grows to fit) instead of running into the next line; the Bank column is wider and the table lines up with its headings."
+  ],
+  [
     "0.4.37",
     "Harvest day summary and tally: a Breakdown by basket — every cheque, MoMo, bank transfer, foreign note and pledge in one table, under a heading for each kind with its count and total, and each line showing the sheet number, the basket (Gratitude, Tuesday-borns, Chairpersons…) and the service it came from. The day summary's first page is now grouped 1st service / 2nd service with a subtotal for each. Sheets not entered are left off the day summary altogether."
   ],

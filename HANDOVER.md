@@ -228,6 +228,13 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.38: breakdown rows grow to fit
+
+On the live summary, "Standard Chartered Bank Ghana" and "ADB (Agricultural Development Bank)" wrapped
+into the next row (fixed 15pt rows). Each breakdown row now takes the height of its tallest cell
+(`heightOfString`, text drawn with wrap), the Bank column is wider, and the columns are scaled to FULL so
+the table matches the heading bars.
+
 ### Built 22 Nov 2026 — 0.4.37: breakdown by basket (summary PDF + tally)
 
 Gideon: for the breakdowns (cheques etc.), one table with headings, each line telling which basket
@@ -919,7 +926,9 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.37 breakdown by basket — built, not deployed (22 Nov 2026)
+### 0.4.38 breakdown rows fit — built, not deployed (22 Nov 2026)
+
+### 0.4.37 breakdown by basket — deployed (checked 22 Nov 2026: healthz 0.4.37)
 
 ### 0.4.36 Add-a-sheet set-up fix — deployed (checked 22 Nov 2026: healthz 0.4.36)
 

@@ -1190,7 +1190,8 @@ function buildDaySummaryPdf({ event, date, rows, entries, denoms, items }) {
     y += 32;
     const KINDS = [['cheque', 'B   CHEQUES', 'Cheque no.', 'Drawer / name'], ['momo', 'C   MOMO', 'Transaction ID', 'Name or number'],
       ['transfer', 'D   BANK TRANSFERS', 'Reference', ''], ['forex', 'E   FOREIGN NOTES', 'Currency, amount @ rate', ''], ['iou', 'F   PLEDGES (IOU)', 'Due', 'Name · phone']];
-    const bcols = [['Sheet', 32], ['Basket', 118], ['Svc', 34], ['', 96], ['', 112], ['Bank', 88], ['Amount (GHS)', 57]];
+    const bcols0 = [['Sheet', 30], ['Basket', 116], ['Svc', 28], ['', 92], ['', 96], ['Bank', 116], ['Amount (GHS)', 59]];
+    const bcols = bcols0.map(([h, w]) => [h, w * FULL / bcols0.reduce((a, c) => a + c[1], 0)]);   // exactly the page width
     const bhead = (k) => {
       let xx = L;
       bcols.forEach(([h, w], i) => {
@@ -1213,18 +1214,22 @@ function buildDaySummaryPdf({ event, date, rows, entries, denoms, items }) {
       bhead(k);
       let lastSvc = null;
       list.forEach(i => {
-        if (y > SH.H - 70) newPage(k);
+        const cells = [i.no ? pad2(i.no) : '—', i.basket, svcName(i.service), i.ref || '', i.party || '', i.bank || '', gh(i.amount)];
+        // Each row is as tall as its longest cell, so a long bank or basket
+        // name wraps inside its own row instead of running into the next.
+        const rh = Math.max(15, ...cells.map((c, ci) => doc.font(ci === 0 || ci === 6 ? 'Helvetica-Bold' : 'Helvetica').fontSize(7.2)
+          .heightOfString(String(c), { width: bcols[ci][1] - 6 }) + 8));
+        if (y + rh > SH.H - 60) newPage(k);
         const shade = many && lastSvc !== null && lastSvc !== i.service;
         lastSvc = i.service;
         let xx = L;
-        const cells = [i.no ? pad2(i.no) : '—', i.basket, svcName(i.service), i.ref || '', i.party || '', i.bank || '', gh(i.amount)];
         bcols.forEach(([, w], ci) => {
-          box(xx, y, w, 15, shade && ci === 0 ? null : null);
-          t(cells[ci], xx + 3, y + 4.5, { s: 7.2, b: ci === 0 || ci === 6, w: w - 6, a: ci === 6 ? 'right' : 'left' });
+          box(xx, y, w, rh);
+          t(cells[ci], xx + 3, y + 4.5, { s: 7.2, b: ci === 0 || ci === 6, w: w - 6, a: ci === 6 ? 'right' : 'left', wrap: true });
           xx += w;
         });
         if (shade) { doc.save(); doc.moveTo(L, y).lineTo(L + FULL, y).lineWidth(1.2).strokeColor(NAVY).stroke(); doc.restore(); }
-        y += 15;
+        y += rh;
       });
       y += 8;
     });
