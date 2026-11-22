@@ -106,6 +106,7 @@ function resetRates(list) {
 function catLabelOf(key) {
   if (key.startsWith('seed.')) return 'Seed — ' + key.slice(5);
   if (key.startsWith('activity.')) return 'Harvest Week — ' + key.slice(9);
+  if (key.startsWith('special.')) return key.slice(8);
   if (key.startsWith('dayborn.')) return key.slice(8) + '-borns';
   if (key === 'gratitude') return 'Gratitude & Thanksgiving Offering';
   if (key === 'chairpersons') return 'Chairpersons & Co-chairpersons';
@@ -1310,6 +1311,9 @@ function viewDay(eventId, date) {
   const actKeys = [...new Set([...activityCats(), ...list.flatMap(e => Object.keys((e.categories || {}).activities || {}))])]
     .filter(k => activityCats().includes(k) || list.some(e => (((e.categories || {}).activities || {})[k] || 0) > 0));
   const areaHead = t => `<tr><td colspan="${cols.length + 1}" style="background:var(--surface-2,#EEF1F7);"><b>${t}</b></td></tr>`;
+  // Sheets added on the day (22 Nov 2026), by name.
+  const spKeys = [...new Set(list.flatMap(e => Object.keys((e.categories || {}).special || {})))]
+    .filter(k => list.some(e => (((e.categories || {}).special || {})[k] || 0) > 0));
   const streamRows = [
     ...seedBlock,
     areaHead('Gratitude &amp; Thanksgiving Offering'),
@@ -1324,6 +1328,10 @@ function viewDay(eventId, date) {
       areaHead('Harvest Week Activities'),
       ...actKeys.map(k => `<tr><td style="padding-left:18px;">${esc(k)}</td>${list.map(e => cell(((e.categories || {}).activities || {})[k] || 0)).join('')}</tr>`),
       `<tr><td style="padding-left:18px;"><b>Activities subtotal</b></td>${list.map(e => `<td class="mono" style="text-align:right;"><b>${gh(activitySum(e))}</b></td>`).join('')}</tr>`,
+    ] : [],
+    ...spKeys.length ? [
+      areaHead('Special sheets'),
+      ...spKeys.map(k => `<tr><td style="padding-left:18px;">${esc(k)}</td>${list.map(e => cell(((e.categories || {}).special || {})[k] || 0)).join('')}</tr>`),
     ] : [],
     `<tr><td><b>Service total</b></td>${list.map(e => `<td class="mono" style="text-align:right;"><b>${gh(e.total)}</b></td>`).join('')}</tr>`,
   ].join('');

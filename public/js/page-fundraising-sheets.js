@@ -145,7 +145,9 @@
           title="${esc(r.label)} — ${r.status === 'entered' ? 'entered by ' + esc(r.enteredBy || '') : r.status === 'photo' ? 'photo received, not typed yet' : 'not entered yet'}">
           <span class="hs-no">${pad2(r.no)}</span><span class="hs-lbl">${esc(short(r.label))}</span>
           <span class="hs-amt mono">${r.status === 'entered' ? gh(r.total) : r.status === 'photo' ? '📷 to type' : '—'}</span></button>`).join('')
+      + (canManage() && !b.locked ? `<button type="button" class="hs-tile hs-addtile" data-add-sheet="${esc(s)}" title="Something came up? Add a sheet with its own name for this service"><span class="hs-no">+</span><span class="hs-lbl">Add a sheet</span></button>` : '')
       + '</div></div>').join('');
+    $('sBoard').querySelectorAll('[data-add-sheet]').forEach(el => el.onclick = () => addSheet(el.dataset.addSheet));
     $('sBoard').querySelectorAll('[data-tile]').forEach(el => el.onclick = () => { $('sNo').value = el.dataset.tile; pickSheet(); });
     $('sEntry').style.opacity = b.locked ? .55 : 1;
     $('sSaveBtn').disabled = b.locked;
@@ -271,7 +273,7 @@
     return { c, cash, total };
   }
   function clearForm(keepNo) {
-    if (!keepNo) { $('sRemoveBtn').style.display = 'none'; }
+    if (!keepNo) { $('sRemoveBtn').style.display = 'none'; $('sDropBtn').style.display = 'none'; }
     if (!keepNo) { $('sNo').value = ''; S.sheet = null; $('sWhich').textContent = 'Type the number printed on the sheet (top right on the paper).'; $('sSeedWrap').style.display = 'none'; fillBand(); }
     document.querySelectorAll('[data-denom]').forEach(i => { i.value = ''; });
     resetLists();
@@ -301,6 +303,7 @@
     clearForm(true);
     fillBand(s);
     $('sRemoveBtn').style.display = s.entered && !s.locked ? '' : 'none';
+    $('sDropBtn').style.display = s.special && !s.entered && !s.locked ? '' : 'none';
     $('sWhich').innerHTML = s.entered
       ? `<span class="badge badge-done">entered by ${esc((s.sheet && s.sheet.enteredBy) || '')}</span> <span class="sub">— change it and save to replace</span>`
       : `<span class="sub">Type the sheet as it reads: cash pieces down, cash total, then each list; the basket total last.</span>`;
@@ -369,6 +372,28 @@
       }
     } finally { S.busy = false; $('sSaveBtn').disabled = !!(S.board && S.board.locked); }
   }
+  // "+ Add a sheet": a named sheet for something that came up (22 Nov 2026).
+  // It gets the next number after every existing sheet, so nothing printed moves.
+  async function addSheet(service) {
+    const name = (prompt(`Name of the new sheet${service !== 'joint' ? ` (${service} service)` : ''} — what the money is for, e.g. "Special appeal" or "Youth presentation":`) || '').trim();
+    if (!name) return;
+    try {
+      const r = await api('/fundraising/days/sheets', { method: 'POST', body: { ...day(), name, service } });
+      toast(`Sheet ${pad2(r.no)} "${r.name}" added`);
+      await refresh();
+      if (confirm(`Sheet ${pad2(r.no)} "${r.name}" is ready.\n\nPrint its paper sheet now?`)) window.open(`/api/fundraising/basket-sheets.pdf?${q()}&no=${r.no}`, '_blank');
+      showStep('enter'); $('sNo').value = r.no; pickSheet();
+    } catch (e) { toast(e.message, true); }
+  }
+  async function dropSheet() {
+    if (!S.sheet || !S.sheet.special) return;
+    if (!confirm(`Take away sheet ${pad2(S.sheet.no)} "${S.sheet.label}"? It was added on the day and has nothing saved.`)) return;
+    try {
+      await api(`/fundraising/days/sheets/${S.sheet.no}?` + q(), { method: 'DELETE' });
+      toast(`Sheet "${S.sheet.label}" taken away`); clearForm(); await refresh(); $('sNo').focus();
+    } catch (e) { toast(e.message, true); }
+  }
+
   // Take a saved sheet off the day (a trial, or the wrong number typed).
   async function removeSheet() {
     if (!S.sheet || !S.sheet.entered) return;
@@ -469,6 +494,7 @@
   $('sCorrected').addEventListener('change', () => { $('sNoteWrap').style.display = $('sCorrected').checked ? '' : 'none'; if ($('sCorrected').checked) $('sNote').focus(); });
   $('sSaveBtn').onclick = () => save();
   $('sRemoveBtn').onclick = removeSheet;
+  $('sDropBtn').onclick = dropSheet;
   $('sClearBtn').onclick = () => {
     clearForm(true); try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* */ }
     // Clear empties the screen only. On a saved sheet say so where the eye is,

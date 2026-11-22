@@ -2019,3 +2019,5 @@ label.hs-corr input[type="checkbox"] { width: auto; height: auto; margin: 0; fle
 }
 
 .hs-warnmsg { display: inline-block; color: #8a4b00; background: rgba(224, 138, 30, .14); border: 1px solid rgba(224, 138, 30, .5); border-radius: 8px; padding: 6px 10px; }
+.hs-tile.hs-addtile { border-style: dashed; color: var(--primary); background: transparent; }
+.hs-tile.hs-addtile .hs-no { font-size: 18px; }

@@ -109,10 +109,15 @@ function seedTotal(cats) {
 function activityTotal(cats) {
   return Object.values((cats || {}).activities || {}).reduce((s, v) => s + n(v), 0);
 }
+// Special sheets (22 Nov 2026): a named basket added on the day for something
+// that came up — stored under categories.special[name], key 'special.<name>'.
+function specialTotal(cats) {
+  return Object.values((cats || {}).special || {}).reduce((s, v) => s + n(v), 0);
+}
 function entryTotal(cats) {
   return n(cats.gratitude) + n(cats.chairpersons)
     + DAYBORN.reduce((s, d) => s + n((cats.dayborn || {})[d]), 0)
-    + seedTotal(cats) + activityTotal(cats);
+    + seedTotal(cats) + activityTotal(cats) + specialTotal(cats);
 }
 
 // ---- Notification fan-out (best-effort, never blocks the action) ----
@@ -171,6 +176,7 @@ function catKeys(year) {
 function catLabel(key) {
   if (key.startsWith('seed.')) return 'Seed — ' + key.slice(5);
   if (key.startsWith('activity.')) return 'Harvest Week — ' + key.slice(9);
+  if (key.startsWith('special.')) return key.slice(8);
   if (key.startsWith('dayborn.')) return key.slice(8) + '-borns';
   if (key === 'gratitude') return 'Gratitude & Thanksgiving';
   if (key === 'chairpersons') return 'Chairpersons & Co-chairpersons';
@@ -181,12 +187,16 @@ function catAmountOf(categories, key) {
   const c = categories || {};
   if (key.startsWith('seed.')) return n((c.seed || {})[key.slice(5)]);
   if (key.startsWith('activity.')) return n((c.activities || {})[key.slice(9)]);
+  if (key.startsWith('special.')) return n((c.special || {})[key.slice(8)]);
   if (key.startsWith('dayborn.')) return n((c.dayborn || {})[key.slice(8)]);
   return n(c[key]);
 }
 function setCatAmount(categories, key, value) {
   if (key.startsWith('seed.')) categories.seed[key.slice(5)] = value;
-  else if (key.startsWith('activity.')) {
+  else if (key.startsWith('special.')) {
+    if (!categories.special) categories.special = {};
+    categories.special[key.slice(8)] = value;
+  } else if (key.startsWith('activity.')) {
     if (!categories.activities) categories.activities = {};
     categories.activities[key.slice(9)] = value;
   } else if (key.startsWith('dayborn.')) categories.dayborn[key.slice(8)] = value;
@@ -478,6 +488,11 @@ function buildEntry(ev, body, existing, req, opts = {}) {
     activities: Object.fromEntries(actAll
       .map(k => [k, n(actIn[k])])
       .filter(([k, v]) => actKeys.includes(k) || v > 0)),
+    // Special sheets: a form that doesn't carry them (the totals form) keeps
+    // what is stored, so editing the day's totals never drops their money.
+    special: Object.fromEntries(Object.entries(c.special !== undefined ? (c.special || {})
+      : ((existing && existing.categories && existing.categories.special) || {}))
+      .map(([k, v]) => [cleanSeedName(k), n(v)]).filter(([k, v]) => k && v > 0)),
   };
 
   // ---- Per-basket breakdowns ----
@@ -487,7 +502,14 @@ function buildEntry(ev, body, existing, req, opts = {}) {
   const rates = normRates(body.rates);
   const validKeys = [...new Set([...catKeys(ev.year),
     ...Object.keys(categories.seed).map(k => 'seed.' + k),
-    ...Object.keys(categories.activities).map(k => 'activity.' + k)])];
+    ...Object.keys(categories.activities).map(k => 'activity.' + k),
+    ...Object.keys(categories.special).map(k => 'special.' + k),
+    ...Object.keys(body.catMethods || {}).filter(k => k.startsWith('special.') && cleanSeedName(k.slice(8)))])];
+  // The totals form doesn't send per-basket counts for special sheets: keep them.
+  if (c.special === undefined && existing && existing.catMethods) {
+    body.catMethods = { ...(body.catMethods || {}) };
+    Object.entries(existing.catMethods).forEach(([k, v]) => { if (k.startsWith('special.') && !body.catMethods[k]) body.catMethods[k] = v; });
+  }
   const catMethods = normCatMethods(body.catMethods, validKeys, rates);
   Object.entries(catMethods).forEach(([key, bd]) => setCatAmount(categories, key, bd.total));
   const total = r2(entryTotal(categories));
@@ -670,6 +692,8 @@ router.put('/entries/basket', ...manage, (req, res) => {
     ...catKeys(ev.year),
     ...Object.keys((existing && existing.categories && existing.categories.seed) || {}).map(k => 'seed.' + k),
     ...Object.keys((existing && existing.categories && existing.categories.activities) || {}).map(k => 'activity.' + k),
+    ...Object.keys((existing && existing.categories && existing.categories.special) || {}).map(k => 'special.' + k),
+    ...((dayRecord(ev.id, date) || {}).extras || []).filter(x => x.service === service).map(x => 'special.' + x.name),
   ])];
   if (!validKeys.includes(key)) return res.status(400).json({ error: `"${key}" is not a basket on this day.` });
 
@@ -710,6 +734,7 @@ router.put('/entries/basket', ...manage, (req, res) => {
   if (!body.categories.seed) body.categories.seed = {};
   if (!body.categories.dayborn) body.categories.dayborn = {};
   if (!body.categories.activities) body.categories.activities = {};
+  if (!body.categories.special) body.categories.special = {};
 
   const built = buildEntry(ev, body, existing, req, { enforceRecon: false });
   if (built.error) return res.status(400).json({ error: built.error });
@@ -844,6 +869,55 @@ router.delete('/days', ...manage, (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- Special sheets: "+ Add a sheet" (22 Nov 2026, per Gideon) ----
+// "Something can always come up": the desk adds a sheet with a name, for one
+// service of a set-up day. It prints, enters, tallies and reports like any
+// basket, on its own line. Removing one is allowed only while nothing is saved
+// on it.
+router.post('/days/sheets', ...manage, (req, res) => {
+  const ev = db.findById('fundraising_events', Number(req.body.eventId));
+  const date = String(req.body.date || '').slice(0, 10);
+  if (!ev || !date) return res.status(400).json({ error: 'Event and date are required.' });
+  const rec = dayRecord(ev.id, date);
+  if (!rec) return res.status(400).json({ error: NOT_SET_UP });
+  const services = rec.shape === 'dual' ? ['1st', '2nd'] : ['joint'];
+  const service = services.length === 1 ? 'joint' : String(req.body.service || '');
+  if (!services.includes(service)) return res.status(400).json({ error: 'Choose the service the sheet is for (1st or 2nd).' });
+  const name = cleanSeedName(req.body.name).slice(0, 60);
+  if (!name || name.length < 2) return res.status(400).json({ error: 'Give the sheet a name — what the money is for.' });
+  const entries = db.findAll('fundraising_entries', e => e.eventId === ev.id && e.date === date);
+  if (entries.some(e => e.status && e.status !== 'pending') && req.user.role !== 'admin') return res.status(423).json({ error: 'This day has been signed off and is locked.' });
+  const taken = sheetBaskets(ev.year).map(b => b.label.toLowerCase());
+  const extras = (rec.extras || []).slice();
+  if (taken.includes(name.toLowerCase()) || extras.some(x => x.service === service && x.name.toLowerCase() === name.toLowerCase())) {
+    return res.status(400).json({ error: `There is already a sheet called "${name}" for this service.` });
+  }
+  const who = actor(req);
+  extras.push({ name, service, addedBy: who.userName, addedById: who.userId, at: new Date().toISOString() });
+  db.update('fundraising_days', rec.id, { extras });
+  const p = sheetPlan(ev, date).plan.find(x => x.special && x.service === service && x.label === name);
+  logActivity({ ...who, action: `Added harvest sheet ${String(p.no).padStart(2, '0')} "${name}"`, entityType: 'fundraising', entityId: rec.id,
+    entityLabel: `${ev.name} ${date} ${service}` });
+  res.json({ ok: true, no: p.no, name, service });
+});
+router.delete('/days/sheets/:no', ...manage, (req, res) => {
+  const ev = db.findById('fundraising_events', Number(req.query.eventId));
+  const date = String(req.query.date || '').slice(0, 10);
+  const rec = ev && dayRecord(ev.id, date);
+  if (!rec) return res.status(404).json({ error: 'That day is not set up.' });
+  const p = sheetPlan(ev, date).plan.find(x => x.no === Number(req.params.no));
+  if (!p || !p.special) return res.status(400).json({ error: 'Only a sheet added on the day can be taken away; the regular sheets stay.' });
+  const e = db.findOne('fundraising_entries', x => x.eventId === ev.id && x.date === date && x.service === p.service);
+  const hit = recordFor(e, p);
+  if (hit && (hit.bd || hit.amount > 0 || (hit.sheet && (hit.sheet.empty || hit.sheet.enteredBy)))) {
+    return res.status(400).json({ error: `Sheet ${String(p.no).padStart(2, '0')} has figures saved. Use "Remove this sheet" on it first.` });
+  }
+  const extras = (rec.extras || []).filter(x => !(x.service === p.service && x.name === p.label));
+  db.update('fundraising_days', rec.id, { extras });
+  logActivity({ ...actor(req), action: `Took away harvest sheet "${p.label}"`, entityType: 'fundraising', entityId: rec.id, entityLabel: `${ev.name} ${date} ${p.service}` });
+  res.json({ ok: true });
+});
+
 function sheetBaskets(year) {
   // Gratitude & Thanksgiving comes first in the service, so it is sheet 01
   // (Harvest Committee, 19 Nov 2026); then the day-borns, Chairpersons, Seed.
@@ -872,6 +946,12 @@ function sheetPlan(ev, date, hint) {
   services.forEach((service, si) => baskets.forEach((b, bi) => plan.push({
     no: si * baskets.length + bi + 1, service, key: b.key, label: b.label,
   })));
+  // Special sheets added on the day come after every regular sheet, in the
+  // order they were added — so no printed number ever moves.
+  const rec = dayRecord(ev.id, date);
+  ((rec && rec.extras) || []).filter(x => services.includes(x.service)).forEach(x => plan.push({
+    no: plan.length + 1, service: x.service, key: 'special.' + x.name, label: x.name, special: true,
+  }));
   return { services, plan, perService: baskets.length };
 }
 // The entry key a sheet's figures are stored under ('seed' becomes seed.<body>).
@@ -1074,6 +1154,7 @@ router.put('/sheets/:no', ...manage, (req, res) => {
   if (!categories.seed) categories.seed = {};
   if (!categories.dayborn) categories.dayborn = {};
   if (!categories.activities) categories.activities = {};
+  if (!categories.special) categories.special = {};
   if (staleKey && staleKey !== 'seed') setCatAmount(categories, staleKey, 0);
   const body = {
     date, service, categories,
@@ -1131,6 +1212,7 @@ router.delete('/sheets/:no', ...manage, (req, res) => {
   if (!categories.seed) categories.seed = {};
   if (!categories.dayborn) categories.dayborn = {};
   if (!categories.activities) categories.activities = {};
+  if (!categories.special) categories.special = {};
   if (key !== 'seed') setCatAmount(categories, key, 0);
   const body = {
     date, service: p.service, categories,
@@ -1217,7 +1299,9 @@ router.get('/basket-sheets.pdf', requireAuth, async (req, res) => {
   if (!ev || !date) return res.status(400).json({ error: 'Choose the event and the date first.' });
   if (!daySetUp(ev, date)) return res.status(400).json({ error: NOT_SET_UP });
   const { services, plan } = sheetPlan(ev, date, req.query.services);
-  const buf = await buildBasketSheetsPdf({ event: ev, date, services, plan, denoms: DENOMS });
+  const only = Number(req.query.no) || null;
+  if (only && !plan.some(x => x.no === only)) return res.status(404).json({ error: `Sheet ${only} is not one of this day's sheets.` });
+  const buf = await buildBasketSheetsPdf({ event: ev, date, services, plan, denoms: DENOMS, only });
   logActivity({ ...actor(req), action: 'Printed harvest basket sheets', entityType: 'fundraising', entityId: ev.id, entityLabel: `${ev.name} ${date} (${services.join(' + ')}, ${plan.length} sheets)` });
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `inline; filename="Harvest_Sheets_${ev.name.replace(/\s+/g, '_')}_${date}.pdf"`);

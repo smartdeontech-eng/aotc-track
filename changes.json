@@ -1,5 +1,9 @@
 [
   [
+    "0.4.35",
+    "Harvest sheets: \"+ Add a sheet\" at the end of each service on the board. Give it a name (a special appeal, a group's presentation, anything that comes up) and it becomes the next sheet number after all the others — no printed number moves. It can be printed on its own, typed, tallied and removed like any sheet, and it appears on its own line, by name, in the results, the announcement PDF and the year's statement. An added sheet with nothing saved can be taken away."
+  ],
+  [
     "0.4.34",
     "Harvest sheets: pressing Clear on a sheet already saved now says plainly that only the screen was cleared and the sheet is still saved (with its amount), and points to Remove this sheet to take it off the day."
   ],

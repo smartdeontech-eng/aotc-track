@@ -226,6 +226,42 @@ const server = app.listen(0, async () => {
     ok(r.status === 200, 'the removed sheet can be typed again without a "replace" question');
     await a('DELETE', `/fundraising/sheets/19?${q}&services=dual`, { eventId: ev.id, date, services: 'dual' });
 
+    // ---- Special sheets: "+ Add a sheet" (22 Nov 2026)
+    r = await a('POST', '/fundraising/days/sheets', { eventId: ev.id, date, name: 'Special appeal', service: '1st' });
+    ok(r.status === 200 && r.json.no === 21, 'a named sheet is added after every regular sheet (no ' + (r.json && r.json.no) + ')');
+    r = await a('POST', '/fundraising/days/sheets', { eventId: ev.id, date, name: 'special appeal', service: '1st' });
+    ok(r.status === 400, 'the same name twice for one service is refused');
+    r = await a('POST', '/fundraising/days/sheets', { eventId: ev.id, date, name: 'Youth presentation', service: '2nd' });
+    ok(r.status === 200 && r.json.no === 22, 'a second one takes the next number (22)');
+    let bd3 = await a('GET', `/fundraising/sheets?${q}&services=dual`);
+    ok(bd3.json.rows.find(x => x.no === 20).label === 'Seed contributions' && bd3.json.rows.find(x => x.no === 21).service === '1st', 'the regular numbers did not move; 21 sits in the 1st service');
+    const t0 = dayTot();
+    r = await a('PUT', '/fundraising/sheets/21', { eventId: ev.id, date, services: 'dual', cashCount: { n200: 5 }, writtenTotal: 1000 });
+    ok(r.status === 200 && Math.abs(dayTot() - t0 - 1000) < 0.01, 'the special sheet saves and adds GHS 1,000 to the day (' + (r.json && r.json.error || '') + ')');
+    const sp1 = db.findOne('fundraising_entries', e => e.eventId === ev.id && e.date === date && e.service === '1st');
+    ok(sp1.categories.special && sp1.categories.special['Special appeal'] === 1000, 'stored under its own name');
+    r = await a('DELETE', `/fundraising/days/sheets/21?${q}&services=dual`);
+    ok(r.status === 400, 'a special sheet with figures cannot be taken away');
+    // the totals form (which knows nothing of special sheets) must keep it
+    const cur = db.findOne('fundraising_entries', e => e.eventId === ev.id && e.date === date && e.service === '1st');
+    const cats = JSON.parse(JSON.stringify(cur.categories)); delete cats.special;
+    r = await a('PUT', '/fundraising/entries', { eventId: ev.id, date, service: '1st', categories: cats, methods: cur.methodsDirect || {},
+      cashCount: (cur.methodsDirect || {}).cashCount || {}, catMethods: Object.fromEntries(Object.entries(cur.catMethods || {}).filter(([k]) => !k.startsWith('special.'))),
+      rates: cur.rates || [], baseUpdatedAt: cur.updatedAt });
+    const e1b = db.findOne('fundraising_entries', e => e.eventId === ev.id && e.date === date && e.service === '1st');
+    ok((e1b.categories.special || {})['Special appeal'] === 1000 && Math.abs(dayTot() - t0 - 1000) < 0.01, 'a totals-form save keeps the special sheet\'s money (' + r.status + ' ' + (r.json && r.json.error || '') + ')');
+    const ann = await a('GET', `/fundraising/announcement.pdf?eventId=${ev.id}&date=${date}`, null, true);
+    ok(ann.status === 200 && /pdf/.test(ann.type), 'the announcement PDF builds with a special sheet');
+    const one = await a('GET', `/fundraising/basket-sheets.pdf?${q}&services=dual&no=21`, null, true);
+    ok(one.status === 200 && one.buf.length > 1000, 'the added sheet prints on its own');
+    r = await a('DELETE', `/fundraising/days/sheets/22?${q}&services=dual`);
+    ok(r.status === 200, 'an added sheet with nothing on it is taken away');
+    r = await a('DELETE', `/fundraising/sheets/21?${q}&services=dual`, { eventId: ev.id, date, services: 'dual' });
+    r = await a('DELETE', `/fundraising/days/sheets/21?${q}&services=dual`);
+    ok(r.status === 200 && Math.abs(dayTot() - t0) < 0.01, 'after Remove this sheet it can be taken away, and the day is back where it was');
+    r = await a('DELETE', `/fundraising/days/sheets/5?${q}&services=dual`);
+    ok(r.status === 400, 'a regular sheet cannot be taken away');
+
     // ---- Submit: the day reconciles because every sheet balanced on its own
     const sub = await a('POST', '/fundraising/submit-day', { eventId: ev.id, date });
     ok(sub.status === 200, 'the day submits for verification (' + (sub.json && sub.json.error || '') + ')');

@@ -228,6 +228,24 @@ families, deduplicated through `reminder_log`), `dates`, `scope`, `aiAssist`.
 | Proofreading loop and the lessons so far | `claude/proofreading-lessons.md` |
 | In-app document viewer (PDF close/download/share, PNG) | `claude/document-viewer.md` |
 
+### Built 22 Nov 2026 — 0.4.35: "+ Add a sheet" (special sheets)
+
+Gideon on harvest day: "something can always come up, so we should be able to create extra sheets and
+give it a name". A new giving family **special**: key `special.<name>`, stored in `categories.special`
+(specialTotal is in entryTotal; catLabel = the name; catAmountOf/setCatAmount handle it). The day record
+(`fundraising_days.extras`: [{name, service, addedBy, at}]) holds which special sheets a day has, per
+service. `sheetPlan` appends them AFTER every regular sheet in the order added (dual day: 21, 22, …) so
+printed numbers never move; plan rows carry `special: true`.
+Routes: `POST /days/sheets` {eventId,date,name,service} (name unique per service, not a regular label;
+day must be set up and unlocked); `DELETE /days/sheets/:no` (only special sheets with nothing saved —
+otherwise "Remove this sheet" first). `basket-sheets.pdf?no=N` prints one sheet.
+**buildEntry keeps special money when a form doesn't send `categories.special`** (the totals form): it
+carries over the stored special figures and their catMethods — tested.
+Reports: announcement PDF "SPECIAL SHEETS" block + a "Special sheets" closing line; year statement
+"Special sheets" table; Results view rows (page-fundraising.js). UI: dashed "+ Add a sheet" tile per
+service (prompt for the name → asks to print it → opens it for entry); "Take away this sheet" button for
+an added sheet with nothing saved. Tests: +14 in test-fundraising-sheets.js.
+
 ### Built 22 Nov 2026 — 0.4.34: Clear on a saved sheet says what it did
 
 Gideon cleared sheet 09 (Chairpersons) and the tile still showed GHS 89,200 — Clear only empties the
@@ -880,7 +898,12 @@ must never be disturbed; "I didn't mean to write" is not evidence.
 
 ## 9. Outstanding
 
-### 0.4.34 Clear note — built, not deployed (22 Nov 2026)
+### 0.4.35 + Add a sheet — built, not deployed (22 Nov 2026)
+
+Check: Record fundraising day → Enter → "+ Add a sheet" under a service → name it → it appears as the
+next number, prints on its own, saves, and shows by name in Results and the announcement PDF.
+
+### 0.4.34 Clear note — deployed (checked 22 Nov 2026: healthz 0.4.34)
 
 ### 0.4.33 empty basket and Remove this sheet — deployed (Remove button seen live, 22 Nov 2026)
 
